@@ -22,7 +22,7 @@ function calcGap(target: number, current: number) {
 
 export const useGapRatio = create<GapRatioState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       items: MOCK_GAP_RATIO,
       lastRefreshed: null,
 

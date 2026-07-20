@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Badge, Button, Card, CardHeader, PageHeader } from '../components/ui'
-import { useReports, type ReportDraft } from '../store/reports'
+import { useReports } from '../store/reports'
 import { FINANCIAL_DB, AVAILABLE_TICKERS, type FinancialData } from '../data/financials'
 import { generateDraft } from '../lib/generateDraft'
 import { exportDocx } from '../lib/exportDocx'

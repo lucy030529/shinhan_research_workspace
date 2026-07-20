@@ -57,7 +57,7 @@ export default function WorklogPage() {
                   <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
                   <YAxis type="category" dataKey="name" tick={{ fontSize: 12 }} width={60} />
                   <Tooltip
-                    formatter={(value: number, name: string) => [
+                    formatter={(value, name) => [
                       `${value}건`,
                       name === 'doing' ? '진행중' : '대기',
                     ]}

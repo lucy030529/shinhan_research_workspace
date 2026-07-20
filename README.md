@@ -33,7 +33,7 @@ npm run preview  # 빌드 결과 미리보기
 - [x] **Phase 2** — 커버리지 엑셀 임포트·등록/수정, 괴리율 Zustand 스토어+어댑터 패턴, Warning 배너
 - [x] **Phase 3** — 데일리 에이전트 게시판 (CRUD/상태변경/필터), 업무일지·워크로드 (Recharts 시각화)
 - [x] **Phase 4** — 보고서 작성 (재무 자동 로드, AI 초안 생성, 편집 에디터, Word 내보내기, IR PDF 첨부)
-- [ ] **Phase 5** — 자료실(DART/IR/리포트/국민연금), 오타 검수, Netlify 배포
+- [x] **Phase 5** — 자료실 (DART/IR/리포트/국민연금 탭+검색), 오타 검수 (규칙 기반+하이라이트), Netlify 배포
 
 ## 외부 데이터 연동에 대한 중요 안내
 신한 사내망 · FnGuide · 퀀티 · 신한 API · 네이버증권 · DART 등 외부 소스는

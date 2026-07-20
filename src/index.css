@@ -29,3 +29,38 @@ body {
   background: #cbd5e1;
   border-radius: 9999px;
 }
+
+/* 보고서 마크다운 렌더링 스타일 */
+.prose-report h1 {
+  @apply text-lg font-bold text-ink border-b-2 border-brand-600 pb-2 mt-6 mb-4;
+}
+.prose-report h1:first-child { @apply mt-0; }
+.prose-report h2 {
+  @apply text-[15px] font-bold text-ink mt-5 mb-3 pl-3 border-l-[3px] border-brand-400;
+}
+.prose-report h3 {
+  @apply text-sm font-semibold text-ink-soft mt-4 mb-2;
+}
+.prose-report p { @apply my-2; }
+.prose-report strong { @apply text-ink; }
+.prose-report table {
+  @apply w-full border-collapse my-3 text-xs;
+}
+.prose-report th {
+  @apply bg-ink text-white px-3 py-2 text-left text-xs font-semibold;
+}
+.prose-report td {
+  @apply px-3 py-[7px] border-b border-slate-200;
+}
+.prose-report tr:nth-child(even) td {
+  @apply bg-slate-50;
+}
+.prose-report blockquote {
+  @apply border-l-[3px] border-brand-500 pl-4 py-3 my-3 bg-brand-50 rounded-r-lg text-sm;
+}
+.prose-report ul {
+  @apply pl-5 my-2;
+}
+.prose-report li {
+  @apply my-1;
+}

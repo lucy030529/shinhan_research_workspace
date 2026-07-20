@@ -1,333 +1,314 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Badge, Button, Card, CardHeader, PageHeader } from '../components/ui'
-import { useReports } from '../store/reports'
-import { FINANCIAL_DB, AVAILABLE_TICKERS, type FinancialData } from '../data/financials'
-import { generateDraft } from '../lib/generateDraft'
+import { REPORT_TYPES, type ReportType } from '../data/reportPrompts'
+import { generateReportMock, buildPrompt } from '../lib/generateReport'
+import { extractText, formatFileSize } from '../lib/fileExtract'
+import { renderMarkdown } from '../lib/renderMarkdown'
 import { exportDocx } from '../lib/exportDocx'
 
-function fmt(n: number) {
-  return n.toLocaleString('ko-KR')
-}
-
-type View = 'list' | 'create' | 'edit'
-
 export default function ReportsPage() {
-  const { drafts, add, update, addAttachment, removeAttachment, remove } = useReports()
-  const [view, setView] = useState<View>('list')
-  const [editId, setEditId] = useState<string | null>(null)
+  // 입력 상태
+  const [reportType, setReportType] = useState<ReportType>('qa')
+  const [company, setCompany] = useState('')
+  const [quarter, setQuarter] = useState('')
+  const [pubDate, setPubDate] = useState(new Date().toISOString().slice(0, 10))
+  const [scriptText, setScriptText] = useState('')
+  const [extraNotes, setExtraNotes] = useState('')
+  const [files, setFiles] = useState<File[]>([])
 
-  // 생성 상태
-  const [selectedTicker, setSelectedTicker] = useState(AVAILABLE_TICKERS[0])
-  const [financialData, setFinancialData] = useState<FinancialData | null>(null)
+  // 출력 상태
+  const [rawMarkdown, setRawMarkdown] = useState('')
+  const [generating, setGenerating] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'generating' | 'done' | 'error'>('idle')
 
-  // 편집 상태
-  const [editTitle, setEditTitle] = useState('')
-  const [editContent, setEditContent] = useState('')
-  const [editOpinion, setEditOpinion] = useState('')
-  const [editTargetPrice, setEditTargetPrice] = useState('')
+  // 프롬프트 보기
+  const [showPrompt, setShowPrompt] = useState(false)
 
-  const currentDraft = editId ? drafts.find((d) => d.id === editId) : null
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const outputRef = useRef<HTMLDivElement>(null)
 
-  function handleLoadFinancials() {
-    const data = FINANCIAL_DB[selectedTicker]
-    if (data) setFinancialData(data)
-  }
+  const typeInfo = REPORT_TYPES.find((t) => t.value === reportType)!
 
-  function handleGenerate() {
-    if (!financialData) return
-    const draft = generateDraft(financialData)
-    const id = add({
-      ticker: financialData.ticker,
-      companyName: financialData.name,
-      ...draft,
-      attachments: [],
+  function addFiles(newFiles: FileList | null) {
+    if (!newFiles) return
+    const arr = Array.from(newFiles)
+    setFiles((prev) => {
+      const existing = new Set(prev.map((f) => f.name + f.size))
+      return [...prev, ...arr.filter((f) => !existing.has(f.name + f.size))]
     })
-    openEditor(id)
   }
 
-  function openEditor(id: string) {
-    const draft = drafts.find((d) => d.id === id) ?? useReports.getState().drafts.find((d) => d.id === id)
-    if (!draft) return
-    setEditId(id)
-    setEditTitle(draft.title)
-    setEditContent(draft.content)
-    setEditOpinion(draft.opinion)
-    setEditTargetPrice(draft.targetPrice)
-    setView('edit')
+  function removeFile(idx: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== idx))
   }
 
-  function handleSave() {
-    if (!editId) return
-    update(editId, { title: editTitle, content: editContent, opinion: editOpinion, targetPrice: editTargetPrice })
-    setView('list')
-    setEditId(null)
-  }
-
-  function handleExportDocx() {
-    if (!currentDraft) return
-    const data = FINANCIAL_DB[currentDraft.ticker]
-    exportDocx(
-      { title: editTitle, content: editContent, opinion: editOpinion, targetPrice: editTargetPrice, companyName: currentDraft.companyName },
-      data,
-    )
-  }
-
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    if (!editId || !e.target.files) return
-    for (const file of Array.from(e.target.files)) {
-      const isPdf = file.name.toLowerCase().endsWith('.pdf')
-      addAttachment(editId, { name: file.name, type: isPdf ? 'pdf' : 'file', size: file.size })
+  async function handleGenerate() {
+    if (!company && !scriptText && files.length === 0) {
+      alert('기업명을 입력하거나, 스크립트/파일을 제공해주세요.')
+      return
     }
-    e.target.value = ''
-  }
 
-  function handleDelete(id: string, name: string) {
-    if (confirm(`"${name}" 보고서를 삭제하시겠습니까?`)) {
-      remove(id)
+    setGenerating(true)
+    setStatus('generating')
+    setRawMarkdown('')
+
+    try {
+      // 파일 텍스트 추출
+      const fileTexts: string[] = []
+      for (const f of files) {
+        const text = await extractText(f)
+        fileTexts.push(`[파일: ${f.name}]\n${text}`)
+      }
+
+      const result = await generateReportMock({
+        reportType, company, quarter, pubDate,
+        scriptText, fileTexts, extraNotes,
+      })
+
+      setRawMarkdown(result)
+      setStatus('done')
+    } catch (e) {
+      setRawMarkdown(`오류: ${e instanceof Error ? e.message : '알 수 없는 오류'}`)
+      setStatus('error')
+    } finally {
+      setGenerating(false)
     }
   }
 
-  // --- 목록 뷰 ---
-  if (view === 'list') {
-    return (
-      <div>
-        <PageHeader
-          title="보고서 작성"
-          description="재무데이터 자동 로드 → AI 초안 생성 → 편집 → Word 내보내기."
-        />
-        <div className="mb-4">
-          <Button onClick={() => { setFinancialData(null); setView('create') }}>+ 새 보고서</Button>
-        </div>
+  function handleCopy() {
+    navigator.clipboard.writeText(rawMarkdown)
+  }
 
-        {drafts.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-ink-faint">
-            작성된 보고서가 없습니다. "새 보고서" 버튼으로 시작하세요.
-          </Card>
-        ) : (
-          <Card>
-            <div className="divide-y divide-slate-100">
-              {drafts.map((d) => (
-                <div key={d.id} className="flex items-center justify-between px-5 py-4">
-                  <div>
-                    <p className="text-sm font-medium text-ink">{d.title}</p>
-                    <p className="text-xs text-ink-faint">
-                      {d.companyName} ({d.ticker}) · 투자의견 {d.opinion} · 목표 {d.targetPrice}원
-                      {d.attachments.length > 0 && ` · 첨부 ${d.attachments.length}건`}
-                    </p>
-                    <p className="text-xs text-ink-faint">
-                      수정 {new Date(d.updatedAt).toLocaleString('ko-KR')}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="text-xs text-brand-600 hover:underline" onClick={() => openEditor(d.id)}>
-                      편집
-                    </button>
-                    <button className="text-xs text-red-500 hover:underline" onClick={() => handleDelete(d.id, d.title)}>
-                      삭제
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        )}
-      </div>
+  function handleDownloadTxt() {
+    const typeLabels: Record<ReportType, string> = { qa: 'QA', sokbo: '속보', review: '실적리뷰', overseas: '해외기업', note: '컨콜노트' }
+    const fname = `${company || '레포트'}_${quarter}_${typeLabels[reportType]}.txt`.replace(/\s+/g, '_')
+    const blob = new Blob([rawMarkdown], { type: 'text/plain;charset=utf-8' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = fname
+    a.click()
+  }
+
+  async function handleDownloadDocx() {
+    await exportDocx(
+      { title: `${company} ${quarter} 레포트`, content: rawMarkdown, opinion: '', targetPrice: '', companyName: company || '레포트' },
     )
   }
 
-  // --- 생성 뷰 (기업 선택 + 재무 로드 + AI 초안) ---
-  if (view === 'create') {
-    return (
-      <div>
-        <PageHeader title="새 보고서 작성" description="기업을 선택하고 재무데이터를 로드하여 AI 초안을 생성합니다." />
-        <button className="mb-4 text-sm text-brand-600 hover:underline" onClick={() => setView('list')}>
-          ← 목록으로
-        </button>
+  function handleViewPrompt() {
+    setShowPrompt(!showPrompt)
+  }
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* 기업 선택 */}
+  const prompt = buildPrompt({ reportType, company, quarter, pubDate, scriptText, fileTexts: [], extraNotes })
+
+  return (
+    <div>
+      <PageHeader
+        title="보고서 작성"
+        description="이동헌 부장 스타일 실적 레포트 생성기. 자료 입력 → AI 초안 → 편집 → 다운로드."
+      />
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+        {/* ── 좌측: 입력 패널 ── */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* 기본 정보 */}
           <Card>
-            <CardHeader title="1. 기업 선택 · 재무데이터 로드" />
-            <div className="p-5">
-              <div className="flex gap-3">
+            <CardHeader title="1. 기본 정보" />
+            <div className="p-5 space-y-4">
+              <label className="block">
+                <span className="text-xs font-medium text-ink-faint">레포트 유형</span>
                 <select
-                  value={selectedTicker}
-                  onChange={(e) => { setSelectedTicker(e.target.value); setFinancialData(null) }}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  value={reportType}
+                  onChange={(e) => setReportType(e.target.value as ReportType)}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 >
-                  {AVAILABLE_TICKERS.map((t) => (
-                    <option key={t} value={t}>{FINANCIAL_DB[t].name} ({t})</option>
+                  {REPORT_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
-                <Button onClick={handleLoadFinancials}>재무 로드</Button>
+                <p className="mt-1 text-xs text-ink-faint">{typeInfo.description}</p>
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <span className="text-xs font-medium text-ink-faint">기업명 <span className="text-ink-faint font-normal">(또는 섹터명)</span></span>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    placeholder="예: HD현대중공업"
+                    className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  />
+                </label>
+                <label className="block">
+                  <span className="text-xs font-medium text-ink-faint">분기</span>
+                  <input
+                    type="text"
+                    value={quarter}
+                    onChange={(e) => setQuarter(e.target.value)}
+                    placeholder="예: 1Q26"
+                    className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  />
+                </label>
               </div>
 
-              {financialData && (
-                <div className="mt-4">
-                  <Badge tone="green">로드 완료</Badge>
-                  <p className="mt-2 text-xs text-ink-faint">
-                    {financialData.name} · {financialData.currency} · 기간: {financialData.periods.join(', ')}
-                  </p>
-                </div>
-              )}
+              <label className="block">
+                <span className="text-xs font-medium text-ink-faint">발간일</span>
+                <input
+                  type="date"
+                  value={pubDate}
+                  onChange={(e) => setPubDate(e.target.value)}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                />
+              </label>
             </div>
           </Card>
 
-          {/* 재무 테이블 미리보기 */}
-          {financialData && (
-            <Card>
-              <CardHeader title="재무 요약" action={<Badge tone="brand">{financialData.currency}</Badge>} />
-              <div className="overflow-x-auto p-4">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-left text-ink-faint">
-                      <th className="px-3 py-2 font-medium">항목</th>
-                      {financialData.periods.map((p) => (
-                        <th key={p} className="px-3 py-2 text-right font-medium">{p}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    {([
-                      ['매출액', financialData.incomeStatement.revenue],
-                      ['영업이익', financialData.incomeStatement.operatingProfit],
-                      ['순이익', financialData.incomeStatement.netIncome],
-                      ['EPS', financialData.incomeStatement.eps],
-                      ['PER', financialData.metrics.per],
-                      ['PBR', financialData.metrics.pbr],
-                      ['ROE (%)', financialData.metrics.roe],
-                      ['영업이익률 (%)', financialData.metrics.operatingMargin],
-                    ] as [string, number[]][]).map(([label, values]) => (
-                      <tr key={label} className="hover:bg-slate-50">
-                        <td className="px-3 py-1.5 font-medium text-ink-soft">{label}</td>
-                        {values.map((v, i) => (
-                          <td key={i} className="px-3 py-1.5 text-right tabular-nums">{fmt(v)}</td>
-                        ))}
-                      </tr>
+          {/* 자료 입력 */}
+          <Card>
+            <CardHeader title="2. 자료 입력" />
+            <div className="p-5 space-y-4">
+              {/* 파일 업로드 */}
+              <div>
+                <span className="text-xs font-medium text-ink-faint">파일 업로드 <span className="font-normal">(TXT, XLSX, PDF, DOCX)</span></span>
+                <div
+                  className="mt-1 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-brand-500') }}
+                  onDragLeave={(e) => e.currentTarget.classList.remove('border-brand-500')}
+                  onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-brand-500'); addFiles(e.dataTransfer.files) }}
+                >
+                  <p className="text-2xl text-slate-300">+</p>
+                  <p className="mt-1 text-xs text-ink-faint"><strong className="text-brand-600">클릭</strong>하거나 파일을 <strong className="text-brand-600">드래그</strong>하세요</p>
+                  <p className="text-xs text-ink-faint mt-0.5">실적발표 스크립트, IR자료, 컨콜전문 등</p>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  accept=".txt,.xlsx,.xls,.csv,.pdf,.docx"
+                  className="hidden"
+                  onChange={(e) => { addFiles(e.target.files); e.target.value = '' }}
+                />
+                {files.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {files.map((f, i) => (
+                      <div key={f.name + f.size} className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-xs">
+                        <div>
+                          <span className="font-medium text-ink">{f.name}</span>
+                          <span className="ml-2 text-ink-faint">{formatFileSize(f.size)}</span>
+                        </div>
+                        <button className="text-red-500 hover:text-red-700" onClick={() => removeFile(i)}>x</button>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                )}
+              </div>
+
+              {/* 스크립트 직접 입력 */}
+              <label className="block">
+                <span className="text-xs font-medium text-ink-faint">스크립트 직접 입력 <span className="font-normal">(선택)</span></span>
+                <textarea
+                  value={scriptText}
+                  onChange={(e) => setScriptText(e.target.value)}
+                  placeholder="실적발표 스크립트 또는 컨퍼런스콜 전문을 붙여넣으세요..."
+                  rows={8}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 leading-relaxed font-mono"
+                />
+              </label>
+
+              {/* 추가 메모 */}
+              <label className="block">
+                <span className="text-xs font-medium text-ink-faint">추가 메모 <span className="font-normal">(선택)</span></span>
+                <textarea
+                  value={extraNotes}
+                  onChange={(e) => setExtraNotes(e.target.value)}
+                  placeholder="특별히 다뤄야 할 이슈, 경쟁사 비교 포인트 등..."
+                  rows={3}
+                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                />
+              </label>
+
+              <Button
+                className="w-full"
+                onClick={handleGenerate}
+                disabled={generating}
+              >
+                {generating ? '생성 중...' : typeInfo.buttonLabel}
+              </Button>
+
+              <button
+                className="w-full text-xs text-ink-faint hover:text-brand-600 hover:underline"
+                onClick={handleViewPrompt}
+              >
+                {showPrompt ? '시스템 프롬프트 숨기기' : '시스템 프롬프트 보기'}
+              </button>
+            </div>
+          </Card>
+
+          {/* 프롬프트 미리보기 */}
+          {showPrompt && (
+            <Card>
+              <CardHeader title="시스템 프롬프트" action={<Badge tone="brand">{typeInfo.label}</Badge>} />
+              <div className="p-4 max-h-64 overflow-auto">
+                <pre className="text-xs text-ink-soft whitespace-pre-wrap font-mono leading-relaxed">{prompt.system}</pre>
               </div>
             </Card>
           )}
         </div>
 
-        {financialData && (
-          <div className="mt-6">
-            <Button onClick={handleGenerate}>AI 초안 생성</Button>
-            <span className="ml-3 text-xs text-ink-faint">재무 데이터 기반으로 보고서 초안을 자동 생성합니다 (목업)</span>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  // --- 편집 뷰 ---
-  return (
-    <div>
-      <PageHeader title="보고서 편집" description={currentDraft ? `${currentDraft.companyName} (${currentDraft.ticker})` : ''} />
-      <button className="mb-4 text-sm text-brand-600 hover:underline" onClick={() => { handleSave(); setView('list') }}>
-        ← 저장 후 목록으로
-      </button>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          {/* 제목 */}
-          <Card className="p-5">
-            <label className="block">
-              <span className="text-xs font-medium text-ink-faint">보고서 제목</span>
-              <input
-                type="text"
-                value={editTitle}
-                onChange={(e) => setEditTitle(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              />
-            </label>
-          </Card>
-
-          {/* 본문 에디터 */}
-          <Card className="p-5">
-            <label className="block">
-              <span className="text-xs font-medium text-ink-faint">본문</span>
-              <textarea
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                rows={18}
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono leading-relaxed"
-              />
-            </label>
-          </Card>
-        </div>
-
-        <div className="space-y-4">
-          {/* 투자의견 / 목표주가 */}
-          <Card className="p-5 space-y-4">
-            <label className="block">
-              <span className="text-xs font-medium text-ink-faint">투자의견</span>
-              <select
-                value={editOpinion}
-                onChange={(e) => setEditOpinion(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              >
-                <option value="매수">매수 (BUY)</option>
-                <option value="Trading BUY">Trading BUY</option>
-                <option value="중립">중립 (HOLD)</option>
-                <option value="매도">매도 (SELL)</option>
-              </select>
-            </label>
-            <label className="block">
-              <span className="text-xs font-medium text-ink-faint">목표주가 (원)</span>
-              <input
-                type="text"
-                value={editTargetPrice}
-                onChange={(e) => setEditTargetPrice(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm tabular-nums focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-              />
-            </label>
-          </Card>
-
-          {/* 첨부파일 (IR PDF 등) */}
-          <Card>
-            <CardHeader title="첨부파일 (IR PDF 등)" />
-            <div className="p-4">
-              <input
-                type="file"
-                accept=".pdf,.pptx,.xlsx,.docx"
-                multiple
-                onChange={handleFileUpload}
-                className="block w-full text-xs text-ink-soft file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-brand-700 hover:file:bg-brand-100"
-              />
-              {currentDraft && currentDraft.attachments.length > 0 && (
-                <ul className="mt-3 space-y-1.5">
-                  {currentDraft.attachments.map((a) => (
-                    <li key={a.name} className="flex items-center justify-between text-xs">
-                      <span className="flex items-center gap-1.5">
-                        <Badge tone={a.type === 'pdf' ? 'red' : 'slate'}>
-                          {a.type === 'pdf' ? 'PDF' : 'FILE'}
-                        </Badge>
-                        <span className="text-ink-soft">{a.name}</span>
-                        <span className="text-ink-faint">({(a.size / 1024).toFixed(0)}KB)</span>
-                      </span>
-                      <button
-                        className="text-red-500 hover:underline"
-                        onClick={() => removeAttachment(editId!, a.name)}
-                      >
-                        삭제
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+        {/* ── 우측: 출력 패널 ── */}
+        <div className="lg:col-span-3">
+          <Card className="sticky top-6">
+            <CardHeader
+              title="생성 결과"
+              action={
+                <span className="text-xs text-ink-faint">
+                  {status === 'generating' && '생성 중...'}
+                  {status === 'done' && '완료'}
+                  {status === 'error' && '오류'}
+                </span>
+              }
+            />
+            <div ref={outputRef} className="p-6 min-h-[400px] max-h-[calc(100vh-200px)] overflow-auto">
+              {status === 'idle' && (
+                <div className="flex flex-col items-center justify-center h-[350px] text-ink-faint text-center">
+                  <p className="text-4xl opacity-20 mb-4">&#9998;</p>
+                  <p className="text-sm">
+                    좌측에 자료를 입력하고<br />
+                    <strong className="text-ink">{typeInfo.buttonLabel}</strong> 버튼을 눌러주세요
+                  </p>
+                </div>
+              )}
+              {status === 'generating' && (
+                <div className="flex items-center gap-2 text-sm text-ink-soft">
+                  <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-brand-600 rounded-full animate-spin" />
+                  레포트 생성 중...
+                </div>
+              )}
+              {(status === 'done' || status === 'error') && rawMarkdown && (
+                <div
+                  className="prose-report text-sm leading-[1.85] text-ink"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(rawMarkdown) }}
+                />
               )}
             </div>
-          </Card>
 
-          {/* 액션 버튼 */}
-          <div className="space-y-2">
-            <Button className="w-full" onClick={handleSave}>저장</Button>
-            <Button className="w-full" variant="secondary" onClick={handleExportDocx}>
-              Word(.docx) 내보내기
-            </Button>
-          </div>
+            {/* 하단 툴바 */}
+            {status === 'done' && rawMarkdown && (
+              <div className="flex gap-2 border-t border-slate-100 px-5 py-3">
+                <button className="rounded-md border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-brand-50 hover:text-brand-600 hover:border-brand-300 transition-colors" onClick={handleCopy}>
+                  복사
+                </button>
+                <button className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 transition-colors" onClick={handleDownloadDocx}>
+                  DOCX 다운로드
+                </button>
+                <button className="rounded-md border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-brand-50 hover:text-brand-600 hover:border-brand-300 transition-colors" onClick={handleDownloadTxt}>
+                  TXT 다운로드
+                </button>
+              </div>
+            )}
+          </Card>
         </div>
       </div>
     </div>

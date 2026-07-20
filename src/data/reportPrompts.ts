@@ -10,11 +10,11 @@ export interface ReportTypeInfo {
 }
 
 export const REPORT_TYPES: ReportTypeInfo[] = [
-  { value: 'qa', label: '실적 Q&A', buttonLabel: '실적 Q&A 생성', description: '컨퍼런스콜 스크립트 → 이동헌 스타일 Q&A 레포트' },
-  { value: 'sokbo', label: '신한 속보', buttonLabel: '속보 레포트 생성', description: '주요 이벤트 → 명사형 종결 속보 레포트 (A4 1장)' },
-  { value: 'review', label: '실적 리뷰 (COMPANY REPORT)', buttonLabel: '실적 리뷰 생성', description: '실적발표 → 신한생각/테이블/Q&A/Valuation 포함' },
-  { value: 'overseas', label: '해외기업 분석', buttonLabel: '해외기업 분석 생성', description: '해외 기업 실적 → 달러/유로 단위 분석 레포트' },
-  { value: 'note', label: '컨콜 노트', buttonLabel: '컨콜 노트 생성', description: '컨퍼런스콜 녹취/속기 → 구조화된 실발노트' },
+  { value: 'qa', label: '실적 Q&A', buttonLabel: '실적 Q&A 생성', description: '' },
+  { value: 'sokbo', label: '신한 속보', buttonLabel: '속보 레포트 생성', description: '' },
+  { value: 'review', label: '실적 리뷰 (COMPANY REPORT)', buttonLabel: '실적 리뷰 생성', description: '' },
+  { value: 'overseas', label: '해외기업 분석', buttonLabel: '해외기업 분석 생성', description: '' },
+  { value: 'note', label: '컨콜 노트', buttonLabel: '컨콜 노트 생성', description: '' },
 ]
 
 export const SYSTEM_PROMPTS: Record<ReportType, string> = {

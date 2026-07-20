@@ -126,7 +126,6 @@ export default function ReportsPage() {
                     <option key={t.value} value={t.value}>{t.label}</option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-ink-faint">{typeInfo.description}</p>
               </label>
 
               <div className="grid grid-cols-2 gap-3">

@@ -105,7 +105,7 @@ export default function ReportsPage() {
     <div>
       <PageHeader
         title="보고서 작성"
-        description="이동헌 부장 스타일 실적 레포트 생성기. 자료 입력 → AI 초안 → 편집 → 다운로드."
+        description="재무데이터 자동 로드 → AI 초안 생성 → 편집 → Word 내보내기."
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">

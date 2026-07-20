@@ -1,7 +1,7 @@
 import { Badge, Card, CardHeader, PageHeader, StatTile } from '../components/ui'
 import { useCoverage } from '../store/coverage'
 import { useGapRatio } from '../store/gapRatio'
-import { MOCK_TASKS } from '../data/mock'
+import { useTasks } from '../store/tasks'
 import { daysUntil, dueTone, formatPct, gapTone, GAP_WARNING_THRESHOLD } from '../lib/utils'
 import { useAuth } from '../store/auth'
 
@@ -9,6 +9,7 @@ export default function DashboardPage() {
   const user = useAuth((s) => s.user)
   const coverageItems = useCoverage((s) => s.items)
   const gapItems = useGapRatio((s) => s.items)
+  const taskItems = useTasks((s) => s.items)
 
   const dueSoon = [...coverageItems]
     .map((c) => ({ ...c, days: daysUntil(c.nextDue) }))
@@ -17,7 +18,7 @@ export default function DashboardPage() {
 
   const warnings = gapItems.filter((g) => Math.abs(g.gapRatio) >= GAP_WARNING_THRESHOLD)
 
-  const todayTasks = MOCK_TASKS.filter((t) => t.status !== 'done')
+  const todayTasks = taskItems.filter((t) => t.status !== 'done')
 
   return (
     <div>

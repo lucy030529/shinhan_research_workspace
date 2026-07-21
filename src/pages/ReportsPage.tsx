@@ -4,7 +4,6 @@ import { REPORT_TYPES, type ReportType } from '../data/reportPrompts'
 import { generateReport, buildPrompt } from '../lib/generateReport'
 import { extractText, formatFileSize } from '../lib/fileExtract'
 import { renderMarkdown } from '../lib/renderMarkdown'
-import { exportDocx } from '../lib/exportDocx'
 
 export default function ReportsPage() {
   // 입력 상태
@@ -97,11 +96,32 @@ export default function ReportsPage() {
   }
 
   async function handleDownloadDocx() {
-    await exportDocx(
-      { title: `${company} ${quarter} 레포트`, content: rawMarkdown, opinion: '', targetPrice: '', companyName: company || '레포트' },
-      undefined,
-      reportType,
-    )
+    try {
+      const resp = await fetch('/api/download-docx', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          markdown: rawMarkdown,
+          reportType,
+          company: company || '레포트',
+          pubDate,
+        }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json()
+        alert(err.error || 'DOCX 생성 실패')
+        return
+      }
+      const blob = await resp.blob()
+      const typeLabels: Record<ReportType, string> = { qa: 'QA', sokbo: '속보', review: '실적리뷰', overseas: '해외기업', note: '컨콜노트' }
+      const fname = `${company || '레포트'}_${typeLabels[reportType]}.docx`.replace(/\s+/g, '_')
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = fname
+      a.click()
+    } catch {
+      alert('DOCX 다운로드 실패. 로컬 서버(node server.mjs)가 실행 중인지 확인해주세요.')
+    }
   }
 
   function handleViewPrompt() {

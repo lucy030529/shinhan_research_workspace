@@ -92,6 +92,8 @@ export default function ReportsPage() {
   async function handleDownloadDocx() {
     await exportDocx(
       { title: `${company} ${quarter} 레포트`, content: rawMarkdown, opinion: '', targetPrice: '', companyName: company || '레포트' },
+      undefined,
+      reportType,
     )
   }
 

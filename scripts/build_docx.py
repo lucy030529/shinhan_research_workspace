@@ -144,7 +144,7 @@ def _fill_sokbo_table_cell(doc, elements):
             continue
         if _is_header_line(content):
             continue
-        content = content.replace('—', ', ').replace('–', ', ')
+        content = _clean_text(content.replace('—', ', ').replace('–', ', '))
         style_name = sokbo_style_map.get(etype, '속보_본문1')
         p = cell.add_paragraph()
         try:
@@ -154,7 +154,7 @@ def _fill_sokbo_table_cell(doc, elements):
         parts = content.split('**')
         for idx, part in enumerate(parts):
             if part:
-                run = p.add_run(part)
+                run = p.add_run(_clean_text(part))
                 if idx % 2 == 1:
                     run.bold = True
 
@@ -300,6 +300,16 @@ def build_docx_from_template(raw_md, report_type, company, pub_date_kr):
     return buf
 
 
+def _clean_text(text):
+    """서로게이트 문자 및 XML 호환 불가 문자 제거."""
+    import re
+    # 서로게이트 페어 제거
+    text = text.encode('utf-8', errors='replace').decode('utf-8', errors='replace')
+    # XML 1.0 허용 불가 제어문자 제거
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]', '', text)
+    return text
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--type', default='qa', choices=['qa', 'sokbo', 'review', 'overseas', 'note'])
@@ -308,7 +318,9 @@ def main():
     parser.add_argument('--output', required=True)
     args = parser.parse_args()
 
-    raw_md = sys.stdin.read()
+    # stdin을 surrogateescape로 읽고 클린업
+    sys.stdin.reconfigure(encoding='utf-8', errors='surrogateescape')
+    raw_md = _clean_text(sys.stdin.read())
     if not raw_md.strip():
         print("마크다운 입력이 비어있습니다.", file=sys.stderr)
         sys.exit(1)

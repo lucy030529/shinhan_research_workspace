@@ -20,8 +20,13 @@ export default function DashboardPage() {
   // 대시보드 로드 시 신한 리서치 리포트와 자동 동기화
   useEffect(() => {
     async function sync() {
+      setSyncStatus('동기화 중...')
       try {
         const { items } = await fetchShinhanResearch({ pageSize: 50 })
+        if (items.length === 0) {
+          setSyncStatus('신한 리서치 리포트를 가져오지 못했습니다.')
+          return
+        }
         const reports = items.filter((r) => r.ticker)
         const covUpdated = syncFromReports(reports.map((r) => ({ ticker: r.ticker, name: r.company, date: r.date })))
         const gapUpdated = syncTargetPrices(reports.map((r) => ({ ticker: r.ticker, name: r.company, targetPrice: r.targetPrice })))
@@ -29,16 +34,16 @@ export default function DashboardPage() {
         // 괴리율 종목들의 현재가도 갱신
         const gapTickers = useGapRatio.getState().items.map((g) => g.ticker).filter(Boolean)
         if (gapTickers.length > 0) {
-          const prices = await fetchStockPrices(gapTickers)
-          refreshPrices(prices.map((p) => ({ ticker: p.ticker, currentPrice: p.currentPrice })))
+          try {
+            const prices = await fetchStockPrices(gapTickers)
+            refreshPrices(prices.map((p) => ({ ticker: p.ticker, currentPrice: p.currentPrice })))
+          } catch { /* 주가 조회 실패해도 계속 */ }
         }
 
-        const parts = []
-        if (covUpdated) parts.push(`커버리지 ${covUpdated}건`)
-        if (gapUpdated) parts.push(`목표주가 ${gapUpdated}건`)
-        if (gapTickers.length) parts.push(`현재가 ${gapTickers.length}건 갱신`)
-        if (parts.length) setSyncStatus(`리포트 동기화: ${parts.join(', ')}`)
-      } catch { /* 동기화 실패해도 무시 */ }
+        setSyncStatus(`동기화 완료: ${reports.length}개 종목 로드, 커버리지 ${covUpdated}건·목표주가 ${gapUpdated}건 갱신`)
+      } catch (e) {
+        setSyncStatus(`동기화 실패: ${e instanceof Error ? e.message : String(e)}`)
+      }
     }
     sync()
   }, [syncFromReports, syncTargetPrices, refreshPrices])
@@ -60,7 +65,11 @@ export default function DashboardPage() {
       />
 
       {syncStatus && (
-        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+        <div className={`mb-4 rounded-lg border px-4 py-2.5 text-sm ${
+          syncStatus.includes('실패') ? 'border-red-200 bg-red-50 text-red-700'
+            : syncStatus.includes('중...') ? 'border-blue-200 bg-blue-50 text-blue-700'
+            : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+        }`}>
           {syncStatus}
         </div>
       )}

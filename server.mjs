@@ -242,16 +242,16 @@ const server = createServer(async (req, res) => {
       try {
         const apiResp = await fetch(
           `https://m.stock.naver.com/api/stock/${code}/basic`,
-          { headers: { 'User-Agent': 'Mozilla/5.0' } },
+          { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } },
         )
         if (!apiResp.ok) continue
         const data = await apiResp.json()
         results.push({
           ticker: code,
           name: data.stockName || code,
-          currentPrice: parseInt(String(data.stockEndPrice || data.closePrice || '0').replace(/,/g, ''), 10) || 0,
+          currentPrice: parseInt(String(data.closePrice || '0').replace(/,/g, ''), 10) || 0,
           change: parseInt(String(data.compareToPreviousClosePrice || '0').replace(/,/g, ''), 10) || 0,
-          changePercent: parseFloat(data.fluctuationsRatio || '0') || 0,
+          changePercent: parseFloat(String(data.fluctuationsRatio || '0')) || 0,
           volume: parseInt(String(data.accumulatedTradingVolume || '0').replace(/,/g, ''), 10) || 0,
         })
       } catch { /* skip */ }

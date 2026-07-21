@@ -27,34 +27,24 @@ export default async (req: Request) => {
   try {
     const results: { ticker: string; currentPrice: number; change: number; changePercent: number; volume: number; name: string }[] = []
 
-    // 네이버 증권 API (비공식) - 한 번에 여러 종목 조회
+    // 네이버 증권 모바일 API
     for (const code of codes) {
       try {
-        const resp = await fetch(
-          `https://finance.naver.com/item/sise_day.naver?code=${code}`,
-          { headers: { 'User-Agent': 'Mozilla/5.0' } },
-        )
-        // 대신 JSON API 사용
         const apiResp = await fetch(
           `https://m.stock.naver.com/api/stock/${code}/basic`,
-          { headers: { 'User-Agent': 'Mozilla/5.0' } },
+          { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } },
         )
 
-        if (!apiResp.ok) {
-          continue
-        }
+        if (!apiResp.ok) continue
 
         const data = await apiResp.json()
-        const price = data.stockEndPrice || data.closePrice
-        const change = data.compareToPreviousClosePrice || 0
-        const changePercent = data.fluctuationsRatio || 0
 
         results.push({
           ticker: code,
           name: data.stockName || code,
-          currentPrice: parseInt(String(price).replace(/,/g, ''), 10) || 0,
-          change: parseInt(String(change).replace(/,/g, ''), 10) || 0,
-          changePercent: parseFloat(changePercent) || 0,
+          currentPrice: parseInt(String(data.closePrice || '0').replace(/,/g, ''), 10) || 0,
+          change: parseInt(String(data.compareToPreviousClosePrice || '0').replace(/,/g, ''), 10) || 0,
+          changePercent: parseFloat(String(data.fluctuationsRatio || '0')) || 0,
           volume: parseInt(String(data.accumulatedTradingVolume || '0').replace(/,/g, ''), 10) || 0,
         })
       } catch {

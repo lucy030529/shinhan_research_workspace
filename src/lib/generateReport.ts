@@ -36,6 +36,7 @@ export function buildPrompt(input: GenerateInput): { system: string; user: strin
   if (input.extraNotes) parts.push(`## 추가 메모\n${input.extraNotes}`)
 
   const user = parts.join('\n\n') + '\n\n' + USER_MSG_SUFFIXES[input.reportType]
+    + '\n\n[필수] 최종 산출물(레포트 본문)만 출력하라. 작업 설명, 서론, 메타코멘트("~하겠습니다", "~분석하겠습니다", "파일이 없지만" 등)를 절대 포함하지 말 것. 첫 글자부터 바로 레포트 내용을 시작하라.'
 
   return { system, user }
 }

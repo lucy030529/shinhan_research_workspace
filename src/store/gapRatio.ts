@@ -118,6 +118,10 @@ export const useGapRatio = create<GapRatioState>()(
           }
         }),
     }),
-    { name: 'shinhan-gap-ratio', version: 2 },
+    {
+      name: 'shinhan-gap-ratio',
+      version: 2,
+      migrate: () => ({ items: [], lastRefreshed: null }),
+    },
   ),
 )

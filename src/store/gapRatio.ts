@@ -103,22 +103,27 @@ export const useGapRatio = create<GapRatioState>()(
       },
 
       loadAnalystTargetPrices: () => {
-        const entries = analystCoverageData.coverage.filter((e) => e.targetPrice > 0)
+        const entries = analystCoverageData.coverage.filter((e) => e.targetPrice > 0 && (e as Record<string, unknown>).ticker)
         let count = 0
         set(() => {
           const now = new Date().toISOString()
-          const items: GapRatioItem[] = entries.map((e) => {
+          const seen = new Set<string>()
+          const items: GapRatioItem[] = []
+          for (const e of entries) {
+            const ticker = (e as Record<string, unknown>).ticker as string
+            if (!ticker || seen.has(ticker)) continue
+            seen.add(ticker)
             count++
-            return {
+            items.push({
               id: 'at' + count,
-              ticker: '',
+              ticker,
               name: e.company,
               targetPrice: e.targetPrice,
               currentPrice: 0,
               gapRatio: 0,
               updatedAt: now,
-            }
-          })
+            })
+          }
           return { items }
         })
         return count
@@ -145,7 +150,7 @@ export const useGapRatio = create<GapRatioState>()(
     }),
     {
       name: 'shinhan-gap-ratio',
-      version: 3,
+      version: 4,
       migrate: () => ({ items: [], lastRefreshed: null }),
     },
   ),

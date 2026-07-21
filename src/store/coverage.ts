@@ -101,7 +101,7 @@ export const useCoverage = create<CoverageState>()(
             count++
             return {
               id: 'ac' + count,
-              ticker: '',
+              ticker: (e as Record<string, unknown>).ticker as string || '',
               name: e.company,
               analyst: e.analyst,
               lastUpdated: e.lastUpdated,
@@ -136,7 +136,7 @@ export const useCoverage = create<CoverageState>()(
     }),
     {
       name: 'shinhan-coverage',
-      version: 3,
+      version: 4,
       migrate: () => ({ items: [], initialized: false }),
     },
   ),

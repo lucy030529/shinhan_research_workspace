@@ -22,7 +22,8 @@
       "lastUpdated": "2026-05-29",
       "opinion": "매수",
       "targetPrice": 23000,
-      "title": "대형 신작 성과까지의 기다림"
+      "title": "대형 신작 성과까지의 기다림",
+      "ticker": "095660"
     },
     {
       "company": "넷마블",
@@ -31,7 +32,8 @@
       "lastUpdated": "2026-02-06",
       "opinion": "매수",
       "targetPrice": 93000,
-      "title": "호실적과 라인업 가시화, 추정치 상향"
+      "title": "호실적과 라인업 가시화, 추정치 상향",
+      "ticker": "251270"
     },
     {
       "company": "더블유게임즈",
@@ -40,7 +42,8 @@
       "lastUpdated": "2026-07-14",
       "opinion": "매수",
       "targetPrice": 100000,
-      "title": "신사업 비중 확대 지속"
+      "title": "신사업 비중 확대 지속",
+      "ticker": "192080"
     },
     {
       "company": "데브시스터즈",
@@ -49,7 +52,8 @@
       "lastUpdated": "2026-07-14",
       "opinion": "중립",
       "targetPrice": 0,
-      "title": "무너진 실적과 신뢰"
+      "title": "무너진 실적과 신뢰",
+      "ticker": "194480"
     },
     {
       "company": "시프트업",
@@ -58,7 +62,8 @@
       "lastUpdated": "2026-04-29",
       "opinion": "TRADING BUY",
       "targetPrice": 37000,
-      "title": "기존작 하향 안정화, 언바운드 인수"
+      "title": "기존작 하향 안정화, 언바운드 인수",
+      "ticker": "462870"
     },
     {
       "company": "웹젠",
@@ -67,7 +72,8 @@
       "lastUpdated": "2026-02-26",
       "opinion": "중립",
       "targetPrice": 0,
-      "title": "주주환원 확대에도 부진한 신작 성과"
+      "title": "주주환원 확대에도 부진한 신작 성과",
+      "ticker": "069080"
     },
     {
       "company": "조이시티",
@@ -76,7 +82,8 @@
       "lastUpdated": "2026-01-30",
       "opinion": "",
       "targetPrice": 0,
-      "title": "신작이 심상치 않다. Again 2020?"
+      "title": "신작이 심상치 않다. Again 2020?",
+      "ticker": "067000"
     },
     {
       "company": "카카오",
@@ -85,7 +92,8 @@
       "lastUpdated": "2026-07-10",
       "opinion": "매수",
       "targetPrice": 61000,
-      "title": "본업 양호하나 AI 수익화 검증 필요"
+      "title": "본업 양호하나 AI 수익화 검증 필요",
+      "ticker": "035720"
     },
     {
       "company": "컴투스",
@@ -94,7 +102,8 @@
       "lastUpdated": "2026-03-13",
       "opinion": "TRADING BUY",
       "targetPrice": 32000,
-      "title": "콥데이 후기: 다가오는 기대 신작들"
+      "title": "콥데이 후기: 다가오는 기대 신작들",
+      "ticker": "078340"
     },
     {
       "company": "크래프톤",
@@ -103,7 +112,8 @@
       "lastUpdated": "2026-02-10",
       "opinion": "중립",
       "targetPrice": 0,
-      "title": "모바일 부진과 일회성 비용 반영"
+      "title": "모바일 부진과 일회성 비용 반영",
+      "ticker": "259960"
     },
     {
       "company": "펄어비스",
@@ -112,7 +122,8 @@
       "lastUpdated": "2026-04-29",
       "opinion": "매수",
       "targetPrice": 72000,
-      "title": "새로운 역사를 썼다"
+      "title": "새로운 역사를 썼다",
+      "ticker": "263750"
     },
     {
       "company": "NAVER",
@@ -121,7 +132,8 @@
       "lastUpdated": "2026-07-10",
       "opinion": "매수",
       "targetPrice": 240000,
-      "title": "Solid earnings, but AI monetization will take time"
+      "title": "Solid earnings, but AI monetization will take time",
+      "ticker": "035420"
     },
     {
       "company": "NHN",
@@ -130,7 +142,8 @@
       "lastUpdated": "2026-04-15",
       "opinion": "매수",
       "targetPrice": 45000,
-      "title": "실적 개선과 신사업 기대감이 동시에"
+      "title": "실적 개선과 신사업 기대감이 동시에",
+      "ticker": "181710"
     },
     {
       "company": "SOOP",
@@ -139,7 +152,8 @@
       "lastUpdated": "2026-07-14",
       "opinion": "매수",
       "targetPrice": 70000,
-      "title": "후원 매출 반등, 신규 콘텐츠 발굴이 숙제"
+      "title": "후원 매출 반등, 신규 콘텐츠 발굴이 숙제",
+      "ticker": "067160"
     },
     {
       "company": "대우건설",
@@ -148,7 +162,8 @@
       "lastUpdated": "2026-07-14",
       "opinion": "중립",
       "targetPrice": 0,
-      "title": "2개분기 연속 기대 이상의 수익성"
+      "title": "2개분기 연속 기대 이상의 수익성",
+      "ticker": "047040"
     },
     {
       "company": "삼성E&A",
@@ -157,7 +172,8 @@
       "lastUpdated": "2026-07-13",
       "opinion": "매수",
       "targetPrice": 64000,
-      "title": "단기 실적, 중장기 전망 모두 긍정적"
+      "title": "단기 실적, 중장기 전망 모두 긍정적",
+      "ticker": "028050"
     },
     {
       "company": "신한글로벌액티브리츠",
@@ -166,7 +182,8 @@
       "lastUpdated": "2026-06-23",
       "opinion": "",
       "targetPrice": 0,
-      "title": "이제 펀더멘탈 회복만 기다리면 된다"
+      "title": "이제 펀더멘탈 회복만 기다리면 된다",
+      "ticker": "481850"
     },
     {
       "company": "아세아시멘트",
@@ -175,7 +192,8 @@
       "lastUpdated": "2026-06-30",
       "opinion": "매수",
       "targetPrice": 16000,
-      "title": "착공 현장이 늘어난다"
+      "title": "착공 현장이 늘어난다",
+      "ticker": "183190"
     },
     {
       "company": "아이에스동서",
@@ -184,7 +202,8 @@
       "lastUpdated": "2026-02-26",
       "opinion": "",
       "targetPrice": 0,
-      "title": "경북 경산시 중산지구 ‘펜타힐즈 W’ 현장 탐방 후기"
+      "title": "경북 경산시 중산지구 ‘펜타힐즈 W’ 현장 탐방 후기",
+      "ticker": "010780"
     },
     {
       "company": "한국토지신탁",
@@ -193,7 +212,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 1800,
-      "title": "시간이 지날수록 커질 Upside"
+      "title": "시간이 지날수록 커질 Upside",
+      "ticker": "034830"
     },
     {
       "company": "한샘",
@@ -202,7 +222,8 @@
       "lastUpdated": "2026-05-13",
       "opinion": "매수",
       "targetPrice": 50000,
-      "title": "하반기까지 지켜볼 필요"
+      "title": "하반기까지 지켜볼 필요",
+      "ticker": "009240"
     },
     {
       "company": "현대건설",
@@ -211,7 +232,8 @@
       "lastUpdated": "2026-07-16",
       "opinion": "매수",
       "targetPrice": 170000,
-      "title": "변한 것은 주가 뿐"
+      "title": "변한 것은 주가 뿐",
+      "ticker": "000720"
     },
     {
       "company": "디앤씨미디어",
@@ -220,7 +242,8 @@
       "lastUpdated": "2026-02-27",
       "opinion": "매수",
       "targetPrice": 17000,
-      "title": "흥행한 IP의 힘"
+      "title": "흥행한 IP의 힘",
+      "ticker": "263720"
     },
     {
       "company": "성호전자",
@@ -229,7 +252,8 @@
       "lastUpdated": "2026-06-25",
       "opinion": "",
       "targetPrice": 0,
-      "title": "선입견 속에 가려진 진짜 CPO 기업"
+      "title": "선입견 속에 가려진 진짜 CPO 기업",
+      "ticker": "043260"
     },
     {
       "company": "쓰리에이로직스",
@@ -238,7 +262,8 @@
       "lastUpdated": "2026-06-11",
       "opinion": "",
       "targetPrice": 0,
-      "title": "NFC 강소기업!"
+      "title": "NFC 강소기업!",
+      "ticker": "177900"
     },
     {
       "company": "웨이브일렉트로",
@@ -247,7 +272,8 @@
       "lastUpdated": "2026-04-22",
       "opinion": "",
       "targetPrice": 0,
-      "title": "탐방노트: 찾았다, 또 다른 방산+통신주"
+      "title": "탐방노트: 찾았다, 또 다른 방산+통신주",
+      "ticker": "095270"
     },
     {
       "company": "인텔리안테크",
@@ -256,7 +282,8 @@
       "lastUpdated": "2026-02-10",
       "opinion": "매수",
       "targetPrice": 144000,
-      "title": "쌓아갈 신뢰"
+      "title": "쌓아갈 신뢰",
+      "ticker": "189300"
     },
     {
       "company": "KT",
@@ -265,7 +292,8 @@
       "lastUpdated": "2026-07-13",
       "opinion": "매수",
       "targetPrice": 77000,
-      "title": "주가 하방 단단"
+      "title": "주가 하방 단단",
+      "ticker": "030200"
     },
     {
       "company": "RFHIC",
@@ -274,7 +302,8 @@
       "lastUpdated": "2026-06-05",
       "opinion": "",
       "targetPrice": 0,
-      "title": "업데이트: 주가는 쉬었지만 펀더멘털은 여전히 좋습니다"
+      "title": "업데이트: 주가는 쉬었지만 펀더멘털은 여전히 좋습니다",
+      "ticker": "218410"
     },
     {
       "company": "고려아연",
@@ -283,7 +312,8 @@
       "lastUpdated": "2026-05-18",
       "opinion": "매수",
       "targetPrice": 1900000,
-      "title": "탈중국 공급망의 키맨으로 비상(飛上)"
+      "title": "탈중국 공급망의 키맨으로 비상(飛上)",
+      "ticker": "010130"
     },
     {
       "company": "금호타이어",
@@ -292,7 +322,8 @@
       "lastUpdated": "2026-07-15",
       "opinion": "매수",
       "targetPrice": 8500,
-      "title": "Q 회복, 자산가치, 배당 재개, 증설. What else?"
+      "title": "Q 회복, 자산가치, 배당 재개, 증설. What else?",
+      "ticker": "073240"
     },
     {
       "company": "기아",
@@ -301,7 +332,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 240000,
-      "title": "흔들리지 않는 편안함"
+      "title": "흔들리지 않는 편안함",
+      "ticker": "000270"
     },
     {
       "company": "넥센타이어",
@@ -310,7 +342,8 @@
       "lastUpdated": "2026-07-15",
       "opinion": "매수",
       "targetPrice": 10000,
-      "title": "아직은 노면이 거칠다"
+      "title": "아직은 노면이 거칠다",
+      "ticker": "002350"
     },
     {
       "company": "세아베스틸지주",
@@ -319,7 +352,8 @@
       "lastUpdated": "2026-07-16",
       "opinion": "매수",
       "targetPrice": 60000,
-      "title": "다시 시작하는 마음으로"
+      "title": "다시 시작하는 마음으로",
+      "ticker": "001430"
     },
     {
       "company": "세아홀딩스",
@@ -328,7 +362,8 @@
       "lastUpdated": "2026-03-06",
       "opinion": "매수",
       "targetPrice": 200000,
-      "title": "Corp. Day 후기: 성장 스토리 이상 無"
+      "title": "Corp. Day 후기: 성장 스토리 이상 無",
+      "ticker": "058650"
     },
     {
       "company": "풍산",
@@ -337,7 +372,8 @@
       "lastUpdated": "2026-02-12",
       "opinion": "매수",
       "targetPrice": 160000,
-      "title": "수익성에 대한 눈높이를 낮춰도 높은 투자 매력도"
+      "title": "수익성에 대한 눈높이를 낮춰도 높은 투자 매력도",
+      "ticker": "103140"
     },
     {
       "company": "한국타이어앤테크놀로지",
@@ -346,7 +382,8 @@
       "lastUpdated": "2026-02-05",
       "opinion": "매수",
       "targetPrice": 79000,
-      "title": "질적 성장 지속"
+      "title": "질적 성장 지속",
+      "ticker": "161390"
     },
     {
       "company": "한온시스템",
@@ -355,7 +392,8 @@
       "lastUpdated": "2026-02-04",
       "opinion": "중립",
       "targetPrice": 0,
-      "title": "리레이팅을 향한 먼 길을 출발"
+      "title": "리레이팅을 향한 먼 길을 출발",
+      "ticker": "018880"
     },
     {
       "company": "현대모비스",
@@ -364,7 +402,8 @@
       "lastUpdated": "2026-07-02",
       "opinion": "매수",
       "targetPrice": 790000,
-      "title": "제조 부문 바닥 통과와 Atlas 옵션의 조합"
+      "title": "제조 부문 바닥 통과와 Atlas 옵션의 조합",
+      "ticker": "012330"
     },
     {
       "company": "현대위아",
@@ -373,7 +412,8 @@
       "lastUpdated": "2026-07-13",
       "opinion": "매수",
       "targetPrice": 97000,
-      "title": "단기 실적은 감속, 전환 스토리는 가속"
+      "title": "단기 실적은 감속, 전환 스토리는 가속",
+      "ticker": "011210"
     },
     {
       "company": "현대제철",
@@ -382,7 +422,8 @@
       "lastUpdated": "2026-07-01",
       "opinion": "TRADING BUY",
       "targetPrice": 44000,
-      "title": "실적 방향성 전환에 주목"
+      "title": "실적 방향성 전환에 주목",
+      "ticker": "004020"
     },
     {
       "company": "현대차",
@@ -391,7 +432,8 @@
       "lastUpdated": "2026-07-10",
       "opinion": "매수",
       "targetPrice": 780000,
-      "title": "하늘을 짊어진 Atlas, 이제 주가를 들어 올릴 때"
+      "title": "하늘을 짊어진 Atlas, 이제 주가를 들어 올릴 때",
+      "ticker": "005380"
     },
     {
       "company": "현대코퍼레이션",
@@ -400,7 +442,8 @@
       "lastUpdated": "2026-04-20",
       "opinion": "매수",
       "targetPrice": 35000,
-      "title": "견조한 외형 성장 기조"
+      "title": "견조한 외형 성장 기조",
+      "ticker": "011760"
     },
     {
       "company": "달바글로벌",
@@ -409,7 +452,8 @@
       "lastUpdated": "2026-07-03",
       "opinion": "매수",
       "targetPrice": 310000,
-      "title": "하반기 갈수록 편하다!"
+      "title": "하반기 갈수록 편하다!",
+      "ticker": "483650"
     },
     {
       "company": "미스토홀딩스",
@@ -418,7 +462,8 @@
       "lastUpdated": "2026-05-26",
       "opinion": "매수",
       "targetPrice": 58000,
-      "title": "국내 실적 호조, 배당주 매력 지속"
+      "title": "국내 실적 호조, 배당주 매력 지속",
+      "ticker": "081660"
     },
     {
       "company": "신세계인터내셔날",
@@ -427,7 +472,8 @@
       "lastUpdated": "2026-05-13",
       "opinion": "매수",
       "targetPrice": 20000,
-      "title": "드디어 왔다! 실적 턴어라운드!"
+      "title": "드디어 왔다! 실적 턴어라운드!",
+      "ticker": "031430"
     },
     {
       "company": "아모레퍼시픽",
@@ -436,7 +482,8 @@
       "lastUpdated": "2026-04-30",
       "opinion": "매수",
       "targetPrice": 185000,
-      "title": "재평가 기회 올 듯"
+      "title": "재평가 기회 올 듯",
+      "ticker": "090430"
     },
     {
       "company": "에이피알",
@@ -445,7 +492,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 540000,
-      "title": "2Q26 또 역대급 매출?!"
+      "title": "2Q26 또 역대급 매출?!",
+      "ticker": "278470"
     },
     {
       "company": "코스맥스",
@@ -454,7 +502,8 @@
       "lastUpdated": "2026-07-16",
       "opinion": "매수",
       "targetPrice": 240000,
-      "title": "악재 모두 반영, 시간이 약"
+      "title": "악재 모두 반영, 시간이 약",
+      "ticker": "192820"
     },
     {
       "company": "한국콜마",
@@ -463,7 +512,8 @@
       "lastUpdated": "2026-06-29",
       "opinion": "매수",
       "targetPrice": 130000,
-      "title": "기세 오르다!"
+      "title": "기세 오르다!",
+      "ticker": "161890"
     },
     {
       "company": "한섬",
@@ -472,7 +522,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 38000,
-      "title": "극도로 저평가된 턴어라운드주"
+      "title": "극도로 저평가된 턴어라운드주",
+      "ticker": "020000"
     },
     {
       "company": "APR",
@@ -481,7 +532,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 540000,
-      "title": "Another record high in sales?!"
+      "title": "Another record high in sales?!",
+      "ticker": "278470"
     },
     {
       "company": "F&F",
@@ -490,7 +542,8 @@
       "lastUpdated": "2026-02-11",
       "opinion": "매수",
       "targetPrice": 99000,
-      "title": "한·중 소비 경기의 수혜주"
+      "title": "한·중 소비 경기의 수혜주",
+      "ticker": "383220"
     },
     {
       "company": "대한조선",
@@ -499,7 +552,8 @@
       "lastUpdated": "2026-04-30",
       "opinion": "",
       "targetPrice": 0,
-      "title": "1Q26 실적발표, 꾸준히 성장하는 대표 중형 조선소"
+      "title": "1Q26 실적발표, 꾸준히 성장하는 대표 중형 조선소",
+      "ticker": "439260"
     },
     {
       "company": "동성화인텍",
@@ -508,7 +562,8 @@
       "lastUpdated": "2026-03-31",
       "opinion": "매수",
       "targetPrice": 33000,
-      "title": "LNG 밸류체인, 일시적 저평가 구간"
+      "title": "LNG 밸류체인, 일시적 저평가 구간",
+      "ticker": "033500"
     },
     {
       "company": "두산밥캣",
@@ -517,7 +572,8 @@
       "lastUpdated": "2026-07-21",
       "opinion": "매수",
       "targetPrice": 83000,
-      "title": "업사이클에 힘입어 성장 시작"
+      "title": "업사이클에 힘입어 성장 시작",
+      "ticker": "241560"
     },
     {
       "company": "삼성중공업",
@@ -526,7 +582,8 @@
       "lastUpdated": "2026-05-04",
       "opinion": "매수",
       "targetPrice": 37000,
-      "title": "비용은 일시적, 성장은 구조적"
+      "title": "비용은 일시적, 성장은 구조적",
+      "ticker": "010140"
     },
     {
       "company": "삼양컴텍",
@@ -535,7 +592,8 @@
       "lastUpdated": "2026-04-21",
       "opinion": "",
       "targetPrice": 0,
-      "title": "계속해서 성장하는 필수 방산 기자재"
+      "title": "계속해서 성장하는 필수 방산 기자재",
+      "ticker": "484590"
     },
     {
       "company": "성광벤드",
@@ -544,7 +602,8 @@
       "lastUpdated": "2026-03-10",
       "opinion": "매수",
       "targetPrice": 40000,
-      "title": "미국 LNG 수주 올해부터가 시작"
+      "title": "미국 LNG 수주 올해부터가 시작",
+      "ticker": "014620"
     },
     {
       "company": "세진중공업",
@@ -553,7 +612,8 @@
       "lastUpdated": "2026-03-30",
       "opinion": "매수",
       "targetPrice": 22000,
-      "title": "선박 화물탱크, 편안한 2026년의 선택지"
+      "title": "선박 화물탱크, 편안한 2026년의 선택지",
+      "ticker": "075580"
     },
     {
       "company": "에스엔시스",
@@ -562,7 +622,8 @@
       "lastUpdated": "2026-03-27",
       "opinion": "",
       "targetPrice": 0,
-      "title": "NDR 후기: 사이클 걱정 없이 쭉 성장한다"
+      "title": "NDR 후기: 사이클 걱정 없이 쭉 성장한다",
+      "ticker": "217730"
     },
     {
       "company": "진성티이씨",
@@ -571,7 +632,8 @@
       "lastUpdated": "2026-03-11",
       "opinion": "",
       "targetPrice": 0,
-      "title": "콥데이 후기; 캐터필러와 업사이클에 힘입어 진격"
+      "title": "콥데이 후기; 캐터필러와 업사이클에 힘입어 진격",
+      "ticker": "036890"
     },
     {
       "company": "태광",
@@ -580,7 +642,8 @@
       "lastUpdated": "2026-04-15",
       "opinion": "매수",
       "targetPrice": 57000,
-      "title": "커진 변동성, 방향성은 확실"
+      "title": "커진 변동성, 방향성은 확실",
+      "ticker": "023160"
     },
     {
       "company": "한국카본",
@@ -589,7 +652,8 @@
       "lastUpdated": "2026-03-16",
       "opinion": "매수",
       "targetPrice": 56000,
-      "title": "LNG 보냉제 성장에 방산까지 영역 확대"
+      "title": "LNG 보냉제 성장에 방산까지 영역 확대",
+      "ticker": "017960"
     },
     {
       "company": "한국항공우주",
@@ -598,7 +662,8 @@
       "lastUpdated": "2026-05-08",
       "opinion": "매수",
       "targetPrice": 215000,
-      "title": "더딘 이익 성장, 미래가 열린 기업"
+      "title": "더딘 이익 성장, 미래가 열린 기업",
+      "ticker": "047810"
     },
     {
       "company": "한화시스템",
@@ -607,7 +672,8 @@
       "lastUpdated": "2026-04-28",
       "opinion": "중립",
       "targetPrice": 0,
-      "title": "단기 실적 부진, 큰 그림은 그대로"
+      "title": "단기 실적 부진, 큰 그림은 그대로",
+      "ticker": "272210"
     },
     {
       "company": "한화에어로스페이스",
@@ -616,7 +682,8 @@
       "lastUpdated": "2026-05-04",
       "opinion": "매수",
       "targetPrice": 1600000,
-      "title": "일시적 부진, 펀더멘털 이상 무"
+      "title": "일시적 부진, 펀더멘털 이상 무",
+      "ticker": "012450"
     },
     {
       "company": "한화엔진",
@@ -625,7 +692,8 @@
       "lastUpdated": "2026-03-31",
       "opinion": "매수",
       "targetPrice": 53000,
-      "title": "업황 혼조에도 구조적 성장"
+      "title": "업황 혼조에도 구조적 성장",
+      "ticker": "082740"
     },
     {
       "company": "한화오션",
@@ -634,7 +702,8 @@
       "lastUpdated": "2026-07-07",
       "opinion": "",
       "targetPrice": 0,
-      "title": "캐나다 잠수함, 아쉬운 결과지만 끝이 아니다"
+      "title": "캐나다 잠수함, 아쉬운 결과지만 끝이 아니다",
+      "ticker": "042660"
     },
     {
       "company": "현대로템",
@@ -643,7 +712,8 @@
       "lastUpdated": "2026-04-27",
       "opinion": "매수",
       "targetPrice": 290000,
-      "title": "실적 호조, 다시 열리는 수출 성장판"
+      "title": "실적 호조, 다시 열리는 수출 성장판",
+      "ticker": "064350"
     },
     {
       "company": "효성중공업",
@@ -652,7 +722,8 @@
       "lastUpdated": "2026-04-27",
       "opinion": "매수",
       "targetPrice": 4200000,
-      "title": "실적은 거들 뿐, 수주 대확장"
+      "title": "실적은 거들 뿐, 수주 대확장",
+      "ticker": "298040"
     },
     {
       "company": "국도화학",
@@ -661,7 +732,8 @@
       "lastUpdated": "2026-06-15",
       "opinion": "매수",
       "targetPrice": 41000,
-      "title": "달라진 그림"
+      "title": "달라진 그림",
+      "ticker": "007690"
     },
     {
       "company": "금호석유화학",
@@ -670,7 +742,8 @@
       "lastUpdated": "2026-06-02",
       "opinion": "매수",
       "targetPrice": 200000,
-      "title": "범용과는 다른 방향성, 차별화의 시작"
+      "title": "범용과는 다른 방향성, 차별화의 시작",
+      "ticker": "011780"
     },
     {
       "company": "대한유화",
@@ -679,7 +752,8 @@
       "lastUpdated": "2026-04-22",
       "opinion": "매수",
       "targetPrice": 200000,
-      "title": "우려 대비 양호한 시황"
+      "title": "우려 대비 양호한 시황",
+      "ticker": "006650"
     },
     {
       "company": "롯데에너지머티리얼즈",
@@ -688,7 +762,8 @@
       "lastUpdated": "2026-05-12",
       "opinion": "매수",
       "targetPrice": 92000,
-      "title": "회로박 모멘텀 가속화"
+      "title": "회로박 모멘텀 가속화",
+      "ticker": "020150"
     },
     {
       "company": "롯데정밀화학",
@@ -697,7 +772,8 @@
       "lastUpdated": "2026-04-29",
       "opinion": "매수",
       "targetPrice": 100000,
-      "title": "호실적에 반도체 소재 모멘텀까지"
+      "title": "호실적에 반도체 소재 모멘텀까지",
+      "ticker": "004000"
     },
     {
       "company": "롯데케미칼",
@@ -706,7 +782,8 @@
       "lastUpdated": "2026-05-12",
       "opinion": "매수",
       "targetPrice": 135000,
-      "title": "우려보다 기대를"
+      "title": "우려보다 기대를",
+      "ticker": "011170"
     },
     {
       "company": "삼성SDI",
@@ -715,7 +792,8 @@
       "lastUpdated": "2026-07-20",
       "opinion": "매수",
       "targetPrice": 700000,
-      "title": "흑자전환, 다음은 본업"
+      "title": "흑자전환, 다음은 본업",
+      "ticker": "006400"
     },
     {
       "company": "에코프로머티",
@@ -724,7 +802,8 @@
       "lastUpdated": "2026-02-26",
       "opinion": "",
       "targetPrice": 0,
-      "title": "회복의 원년"
+      "title": "회복의 원년",
+      "ticker": "450080"
     },
     {
       "company": "에코프로비엠",
@@ -733,7 +812,8 @@
       "lastUpdated": "2026-07-01",
       "opinion": "",
       "targetPrice": 0,
-      "title": "에코프로비엠 유상증자 발표"
+      "title": "에코프로비엠 유상증자 발표",
+      "ticker": "247540"
     },
     {
       "company": "엘앤에프",
@@ -742,7 +822,8 @@
       "lastUpdated": "2026-05-04",
       "opinion": "매수",
       "targetPrice": 280000,
-      "title": "차별화된 실적"
+      "title": "차별화된 실적",
+      "ticker": "066970"
     },
     {
       "company": "유니드",
@@ -751,7 +832,8 @@
       "lastUpdated": "2026-04-23",
       "opinion": "매수",
       "targetPrice": 110000,
-      "title": "칼륨 업사이클의 수혜주"
+      "title": "칼륨 업사이클의 수혜주",
+      "ticker": "014830"
     },
     {
       "company": "이수스페셜티케미컬",
@@ -760,7 +842,8 @@
       "lastUpdated": "2026-02-26",
       "opinion": "",
       "targetPrice": 0,
-      "title": "전고체 시대의 원석 발견!"
+      "title": "전고체 시대의 원석 발견!",
+      "ticker": "457190"
     },
     {
       "company": "코오롱인더",
@@ -769,7 +852,8 @@
       "lastUpdated": "2026-03-09",
       "opinion": "매수",
       "targetPrice": 88000,
-      "title": "NDR 후기: 기대되는 2026년"
+      "title": "NDR 후기: 기대되는 2026년",
+      "ticker": "120110"
     },
     {
       "company": "포스코퓨처엠",
@@ -778,7 +862,8 @@
       "lastUpdated": "2026-07-08",
       "opinion": "매수",
       "targetPrice": 180000,
-      "title": "비중국 공급망의 퍼즐"
+      "title": "비중국 공급망의 퍼즐",
+      "ticker": "003670"
     },
     {
       "company": "한화솔루션",
@@ -787,7 +872,8 @@
       "lastUpdated": "2026-04-29",
       "opinion": "매수",
       "targetPrice": 55000,
-      "title": "우려 대비 양호한 실적"
+      "title": "우려 대비 양호한 실적",
+      "ticker": "009830"
     },
     {
       "company": "효성티앤씨",
@@ -796,7 +882,8 @@
       "lastUpdated": "2026-06-02",
       "opinion": "매수",
       "targetPrice": 700000,
-      "title": "피크아웃을 논하기엔 아직 이르다"
+      "title": "피크아웃을 논하기엔 아직 이르다",
+      "ticker": "298020"
     },
     {
       "company": "농심",
@@ -805,7 +892,8 @@
       "lastUpdated": "2026-05-18",
       "opinion": "매수",
       "targetPrice": 570000,
-      "title": "끓기 시작하는 해외 성장"
+      "title": "끓기 시작하는 해외 성장",
+      "ticker": "004370"
     },
     {
       "company": "롯데쇼핑",
@@ -814,7 +902,8 @@
       "lastUpdated": "2026-06-09",
       "opinion": "매수",
       "targetPrice": 200000,
-      "title": "대표이사 간담회 후기, 아직 갈 길이 멀다"
+      "title": "대표이사 간담회 후기, 아직 갈 길이 멀다",
+      "ticker": "023530"
     },
     {
       "company": "롯데웰푸드",
@@ -823,7 +912,8 @@
       "lastUpdated": "2026-05-11",
       "opinion": "매수",
       "targetPrice": 160000,
-      "title": "시작이 좋다"
+      "title": "시작이 좋다",
+      "ticker": "280360"
     },
     {
       "company": "롯데칠성",
@@ -832,7 +922,8 @@
       "lastUpdated": "2026-05-06",
       "opinion": "매수",
       "targetPrice": 160000,
-      "title": "오랜만에 찾아온 국내 외형 성장"
+      "title": "오랜만에 찾아온 국내 외형 성장",
+      "ticker": "005300"
     },
     {
       "company": "삼양식품",
@@ -841,7 +932,8 @@
       "lastUpdated": "2026-07-13",
       "opinion": "매수",
       "targetPrice": 1750000,
-      "title": "숫자가 증명하는 경쟁력"
+      "title": "숫자가 증명하는 경쟁력",
+      "ticker": "003230"
     },
     {
       "company": "서부T&D",
@@ -850,7 +942,8 @@
       "lastUpdated": "2026-02-03",
       "opinion": "매수",
       "targetPrice": 21000,
-      "title": "오래봐야 더 좋다"
+      "title": "오래봐야 더 좋다",
+      "ticker": "006730"
     },
     {
       "company": "신세계",
@@ -859,7 +952,8 @@
       "lastUpdated": "2026-07-08",
       "opinion": "매수",
       "targetPrice": 830000,
-      "title": "싸워, 높아진 눈높이와 싸워"
+      "title": "싸워, 높아진 눈높이와 싸워",
+      "ticker": "004170"
     },
     {
       "company": "오리온",
@@ -868,7 +962,8 @@
       "lastUpdated": "2026-07-13",
       "opinion": "매수",
       "targetPrice": 160000,
-      "title": "비수기에도 흔들림 없는 성장"
+      "title": "비수기에도 흔들림 없는 성장",
+      "ticker": "271560"
     },
     {
       "company": "이마트",
@@ -877,7 +972,8 @@
       "lastUpdated": "2026-05-14",
       "opinion": "매수",
       "targetPrice": 140000,
-      "title": "지원금은 일시적이나 경쟁 완화는 지속"
+      "title": "지원금은 일시적이나 경쟁 완화는 지속",
+      "ticker": "139480"
     },
     {
       "company": "코웨이",
@@ -886,7 +982,8 @@
       "lastUpdated": "2026-05-11",
       "opinion": "매수",
       "targetPrice": 115000,
-      "title": "조용하게 강하다"
+      "title": "조용하게 강하다",
+      "ticker": "021240"
     },
     {
       "company": "하이트진로",
@@ -895,7 +992,8 @@
       "lastUpdated": "2026-02-20",
       "opinion": "매수",
       "targetPrice": 25000,
-      "title": "업황은 둔화, 지위는 견고"
+      "title": "업황은 둔화, 지위는 견고",
+      "ticker": "000080"
     },
     {
       "company": "현대백화점",
@@ -904,7 +1002,8 @@
       "lastUpdated": "2026-07-08",
       "opinion": "매수",
       "targetPrice": 210000,
-      "title": "주가는 이유없이 오르지 않는다"
+      "title": "주가는 이유없이 오르지 않는다",
+      "ticker": "069960"
     },
     {
       "company": "호텔신라",
@@ -913,7 +1012,8 @@
       "lastUpdated": "2026-04-27",
       "opinion": "매수",
       "targetPrice": 77000,
-      "title": "이번에는 진짜 다르다(feat. 면세)"
+      "title": "이번에는 진짜 다르다(feat. 면세)",
+      "ticker": "008770"
     },
     {
       "company": "강원랜드",
@@ -922,7 +1022,8 @@
       "lastUpdated": "2026-07-16",
       "opinion": "매수",
       "targetPrice": 19000,
-      "title": "수요 부진 vs. 적은 비용 부담"
+      "title": "수요 부진 vs. 적은 비용 부담",
+      "ticker": "035250"
     },
     {
       "company": "디어유",
@@ -931,7 +1032,8 @@
       "lastUpdated": "2026-05-07",
       "opinion": "매수",
       "targetPrice": 48000,
-      "title": "따박따박 본업 실적에 해외 붙이기"
+      "title": "따박따박 본업 실적에 해외 붙이기",
+      "ticker": "376300"
     },
     {
       "company": "롯데관광개발",
@@ -940,7 +1042,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 25500,
-      "title": "2Q26Pre: 가장 안정적인 성장"
+      "title": "2Q26Pre: 가장 안정적인 성장",
+      "ticker": "032350"
     },
     {
       "company": "스튜디오드래곤",
@@ -949,7 +1052,8 @@
       "lastUpdated": "2026-05-08",
       "opinion": "매수",
       "targetPrice": 47000,
-      "title": "견조한 매출 vs. 일시 비용 부담"
+      "title": "견조한 매출 vs. 일시 비용 부담",
+      "ticker": "253450"
     },
     {
       "company": "에스엠",
@@ -958,7 +1062,8 @@
       "lastUpdated": "2026-07-21",
       "opinion": "매수",
       "targetPrice": 110000,
-      "title": "IP의 완벽한 하모니"
+      "title": "IP의 완벽한 하모니",
+      "ticker": "041510"
     },
     {
       "company": "와이지엔터테인먼트",
@@ -967,7 +1072,8 @@
       "lastUpdated": "2026-05-29",
       "opinion": "매수",
       "targetPrice": 65000,
-      "title": "세대교체 순항 중"
+      "title": "세대교체 순항 중",
+      "ticker": "122870"
     },
     {
       "company": "제일기획",
@@ -976,7 +1082,8 @@
       "lastUpdated": "2026-02-04",
       "opinion": "매수",
       "targetPrice": 26000,
-      "title": "실적과 배당 모두 기대치 부합"
+      "title": "실적과 배당 모두 기대치 부합",
+      "ticker": "030000"
     },
     {
       "company": "파라다이스",
@@ -985,7 +1092,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 20000,
-      "title": "2Q26Pre: 사상 최대 드랍액 vs. 요동치는 홀드율"
+      "title": "2Q26Pre: 사상 최대 드랍액 vs. 요동치는 홀드율",
+      "ticker": "034230"
     },
     {
       "company": "하나투어",
@@ -994,7 +1102,8 @@
       "lastUpdated": "2026-07-14",
       "opinion": "매수",
       "targetPrice": 46000,
-      "title": "비우호적인 영업 환경"
+      "title": "비우호적인 영업 환경",
+      "ticker": "039130"
     },
     {
       "company": "하이브",
@@ -1003,7 +1112,8 @@
       "lastUpdated": "2026-04-07",
       "opinion": "매수",
       "targetPrice": 400000,
-      "title": "1Q26 Pre: 매출액 대폭 상회, 손익 부합"
+      "title": "1Q26 Pre: 매출액 대폭 상회, 손익 부합",
+      "ticker": "352820"
     },
     {
       "company": "GKL",
@@ -1012,7 +1122,8 @@
       "lastUpdated": "2026-07-09",
       "opinion": "매수",
       "targetPrice": 14000,
-      "title": "2Q26Pre: 낮은 기대치와 Mass 지표가 핵심"
+      "title": "2Q26Pre: 낮은 기대치와 Mass 지표가 핵심",
+      "ticker": "114090"
     },
     {
       "company": "SBS",
@@ -1021,7 +1132,8 @@
       "lastUpdated": "2026-07-20",
       "opinion": "매수",
       "targetPrice": 17000,
-      "title": "분위기 반전은 4Q26 이후"
+      "title": "분위기 반전은 4Q26 이후",
+      "ticker": "034120"
     },
     {
       "company": "대한항공",
@@ -1030,7 +1142,8 @@
       "lastUpdated": "2026-07-15",
       "opinion": "매수",
       "targetPrice": 38000,
-      "title": "여행은 안 가도 반도체는 날라야지"
+      "title": "여행은 안 가도 반도체는 날라야지",
+      "ticker": "003490"
     },
     {
       "company": "대한해운",
@@ -1039,7 +1152,8 @@
       "lastUpdated": "2026-05-18",
       "opinion": "매수",
       "targetPrice": 3000,
-      "title": "밖에 전쟁 났나요?"
+      "title": "밖에 전쟁 났나요?",
+      "ticker": "005880"
     },
     {
       "company": "진에어",
@@ -1048,7 +1162,8 @@
       "lastUpdated": "2026-05-26",
       "opinion": "매수",
       "targetPrice": 8000,
-      "title": "버틸 체력은 충분"
+      "title": "버틸 체력은 충분",
+      "ticker": "272450"
     },
     {
       "company": "팬오션",
@@ -1057,7 +1172,8 @@
       "lastUpdated": "2026-07-15",
       "opinion": "매수",
       "targetPrice": 7500,
-      "title": "순항 중, 미래 대비도 척척"
+      "title": "순항 중, 미래 대비도 척척",
+      "ticker": "028670"
     },
     {
       "company": "현대글로비스",
@@ -1066,7 +1182,8 @@
       "lastUpdated": "2026-07-06",
       "opinion": "매수",
       "targetPrice": 320000,
-      "title": "변함없는 큰 그림"
+      "title": "변함없는 큰 그림",
+      "ticker": "086280"
     },
     {
       "company": "HMM",
@@ -1075,7 +1192,8 @@
       "lastUpdated": "2026-05-14",
       "opinion": "중립",
       "targetPrice": 0,
-      "title": "불확실한 업황 속 분투"
+      "title": "불확실한 업황 속 분투",
+      "ticker": "011200"
     },
     {
       "company": "두산에너빌리티",
@@ -1084,7 +1202,8 @@
       "lastUpdated": "2026-05-27",
       "opinion": "29",
       "targetPrice": 0,
-      "title": "좋음, 좋음, 좋음!"
+      "title": "좋음, 좋음, 좋음!",
+      "ticker": "034020"
     },
     {
       "company": "복합유틸리티",
@@ -1093,7 +1212,8 @@
       "lastUpdated": "2026-06-25",
       "opinion": "14",
       "targetPrice": 0,
-      "title": "본격적인 미국 원전 밸류체인 재건 시작"
+      "title": "본격적인 미국 원전 밸류체인 재건 시작",
+      "ticker": ""
     },
     {
       "company": "비에이치아이",
@@ -1102,7 +1222,8 @@
       "lastUpdated": "2026-05-27",
       "opinion": "7",
       "targetPrice": 0,
-      "title": "HRSG라는 확실한 주연에 원전이라는 씬스틸러"
+      "title": "HRSG라는 확실한 주연에 원전이라는 씬스틸러",
+      "ticker": "083650"
     },
     {
       "company": "철강",
@@ -1111,7 +1232,8 @@
       "lastUpdated": "2026-07-08",
       "opinion": "55",
       "targetPrice": 0,
-      "title": "미래 핵심 자원 대표 플랫폼, POSCO"
+      "title": "미래 핵심 자원 대표 플랫폼, POSCO",
+      "ticker": ""
     },
     {
       "company": "포스코인터내셔널",
@@ -1120,7 +1242,8 @@
       "lastUpdated": "2026-07-08",
       "opinion": "16",
       "targetPrice": 0,
-      "title": "자원 공급망 플랫폼 가치에 주목"
+      "title": "자원 공급망 플랫폼 가치에 주목",
+      "ticker": "047050"
     },
     {
       "company": "한국가스공사",
@@ -1129,7 +1252,8 @@
       "lastUpdated": "2026-05-27",
       "opinion": "10",
       "targetPrice": 0,
-      "title": "미수금 우려에 갇혀버린 주가"
+      "title": "미수금 우려에 갇혀버린 주가",
+      "ticker": "036460"
     },
     {
       "company": "한국전력",
@@ -1138,7 +1262,8 @@
       "lastUpdated": "2026-07-16",
       "opinion": "12",
       "targetPrice": 0,
-      "title": "하반기 실적 부담보다 이후 변화에 주목"
+      "title": "하반기 실적 부담보다 이후 변화에 주목",
+      "ticker": "015760"
     },
     {
       "company": "한전KPS",
@@ -1147,7 +1272,8 @@
       "lastUpdated": "2026-05-27",
       "opinion": "7",
       "targetPrice": 0,
-      "title": "원전 완전 안전"
+      "title": "원전 완전 안전",
+      "ticker": "051600"
     }
   ]
 }

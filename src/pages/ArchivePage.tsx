@@ -165,7 +165,7 @@ export default function ArchivePage() {
                   rel="noopener noreferrer"
                   className="text-xs text-brand-600 hover:underline"
                 >
-                  {item.url.endsWith('.pdf') ? 'PDF 다운로드' : '원문 보기'}
+                  {item.id.startsWith('shinhan-') ? '리포트 보기' : '원문 보기'}
                 </a>
               )}
             </div>

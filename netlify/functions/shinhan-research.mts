@@ -50,21 +50,21 @@ export default async (req: Request) => {
     const total = collection?.thisTotalCount || 0
 
     const items = rawItems.map((item: Record<string, string>) => {
-      const filePath = item.FILE_PATH || ''
-      const fileName = item.DISPLAYNAME || ''
-      const pdfUrl = filePath && fileName
-        ? `https://www.shinhansec.com${filePath}/${fileName}`
+      const boardName2 = item.BOARD_NAME || ''
+      const docId = item.DOCID || item.MESSAGE_ID || ''
+      const viewUrl = boardName2 && docId
+        ? `https://www.shinhansec.com/siw/board/message/view.file.pop.do?boardName=${boardName2}&messageId=${docId}`
         : ''
 
       return {
-        id: item.DOCID || item.MESSAGE_ID,
+        id: docId,
         title: item.TITLE || '',
         analyst: item.REGISTER_NICKNAME || '',
         category: item.BOARD_TITLE || item.VARIABLE_FIELD_NAME3 || '',
-        boardName: item.BOARD_NAME || '',
+        boardName: boardName2,
         company: item.VARIABLE_FIELD_NAME1 || item.VARIABLE_FIELD_NAME2 || '',
         date: item.DATE || '',
-        pdfUrl,
+        pdfUrl: viewUrl,
       }
     })
 

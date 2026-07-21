@@ -2,12 +2,28 @@ import { useState } from 'react'
 import { Badge, Button, Card, PageHeader } from '../components/ui'
 import { useGapRatio } from '../store/gapRatio'
 import { formatPct, formatWon, gapTone, GAP_WARNING_THRESHOLD } from '../lib/utils'
+import { fetchStockPrices } from '../lib/api'
 import GapRatioModal from '../components/gapRatio/GapRatioModal'
 import type { GapRatioItem } from '../types'
 
 export default function GapRatioPage() {
-  const { items, lastRefreshed, upsert, remove } = useGapRatio()
+  const { items, lastRefreshed, upsert, remove, refreshPrices } = useGapRatio()
   const [modal, setModal] = useState<'add' | GapRatioItem | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+
+  async function handleRefreshPrices() {
+    if (items.length === 0) return
+    setRefreshing(true)
+    try {
+      const tickers = items.map((g) => g.ticker)
+      const prices = await fetchStockPrices(tickers)
+      refreshPrices(prices.map((p) => ({ ticker: p.ticker, currentPrice: p.currentPrice })))
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '주가 조회 실패')
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   const rows = [...items].sort((a, b) => Math.abs(b.gapRatio) - Math.abs(a.gapRatio))
   const warnings = rows.filter((g) => Math.abs(g.gapRatio) >= GAP_WARNING_THRESHOLD)
@@ -51,6 +67,9 @@ export default function GapRatioPage() {
 
       <div className="mb-4 flex items-center gap-3">
         <Button onClick={() => setModal('add')}>+ 종목 등록</Button>
+        <Button variant="secondary" onClick={handleRefreshPrices} disabled={refreshing}>
+          {refreshing ? '조회 중...' : '현재가 새로고침'}
+        </Button>
         {lastRefreshed && (
           <span className="text-xs text-ink-faint">
             마지막 갱신: {new Date(lastRefreshed).toLocaleString('ko-KR')}

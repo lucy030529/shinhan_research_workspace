@@ -225,6 +225,40 @@ const server = createServer(async (req, res) => {
         res.end(JSON.stringify({ error: `파일 읽기 실패: ${e.message}` }))
       }
     })
+  } else if (req.method === 'GET' && req.url?.startsWith('/api/stock-price')) {
+    // 네이버 증권 주가 조회 프록시
+    const u = new URL(req.url, `http://localhost:${PORT}`)
+    const tickers = u.searchParams.get('tickers')
+    if (!tickers) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: '종목코드(tickers)를 입력해주세요.' }))
+      return
+    }
+
+    const codes = tickers.split(',').map(t => t.trim()).filter(Boolean)
+    const results = []
+
+    for (const code of codes) {
+      try {
+        const apiResp = await fetch(
+          `https://m.stock.naver.com/api/stock/${code}/basic`,
+          { headers: { 'User-Agent': 'Mozilla/5.0' } },
+        )
+        if (!apiResp.ok) continue
+        const data = await apiResp.json()
+        results.push({
+          ticker: code,
+          name: data.stockName || code,
+          currentPrice: parseInt(String(data.stockEndPrice || data.closePrice || '0').replace(/,/g, ''), 10) || 0,
+          change: parseInt(String(data.compareToPreviousClosePrice || '0').replace(/,/g, ''), 10) || 0,
+          changePercent: parseFloat(data.fluctuationsRatio || '0') || 0,
+          volume: parseInt(String(data.accumulatedTradingVolume || '0').replace(/,/g, ''), 10) || 0,
+        })
+      } catch { /* skip */ }
+    }
+
+    res.writeHead(200, { 'Content-Type': 'application/json' })
+    res.end(JSON.stringify({ prices: results, fetchedAt: new Date().toISOString() }))
   } else {
     res.writeHead(404, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ error: 'Not Found' }))

@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { Badge, Card, CardHeader, PageHeader } from '../components/ui'
-import { MOCK_ARCHIVE, CATEGORY_LABELS, type ArchiveItem } from '../data/archive'
+import { useState, useEffect, useCallback } from 'react'
+import { Badge, Button, Card, CardHeader, PageHeader } from '../components/ui'
+import { CATEGORY_LABELS, type ArchiveItem } from '../data/archive'
+import { fetchDart, fetchNews, type DartItem, type NewsItem } from '../lib/api'
 
 type Category = ArchiveItem['category'] | 'all'
 
@@ -15,7 +16,37 @@ export default function ArchivePage() {
   const [tab, setTab] = useState<Category>('all')
   const [search, setSearch] = useState('')
 
-  const filtered = MOCK_ARCHIVE
+  // 실시간 데이터
+  const [dartItems, setDartItems] = useState<DartItem[]>([])
+  const [newsItems, setNewsItems] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(false)
+  const [lastFetched, setLastFetched] = useState<string | null>(null)
+
+  // DART + 뉴스를 합쳐서 ArchiveItem 형태로 변환
+  const liveItems: ArchiveItem[] = [
+    ...dartItems.map((d) => ({
+      id: `dart-${d.id}`,
+      category: 'dart' as const,
+      title: d.title,
+      source: 'DART',
+      date: d.date,
+      ticker: d.ticker,
+      companyName: d.companyName,
+      url: d.url,
+    })),
+    ...newsItems.map((n, i) => ({
+      id: `news-${i}`,
+      category: 'report' as const,
+      title: n.title,
+      source: n.source,
+      date: new Date(n.pubDate).toISOString().slice(0, 10),
+      url: n.link,
+    })),
+  ]
+
+  const allItems = liveItems
+
+  const filtered = allItems
     .filter((a) => tab === 'all' || a.category === tab)
     .filter((a) => {
       if (!search.trim()) return true
@@ -30,24 +61,45 @@ export default function ArchivePage() {
     .sort((a, b) => b.date.localeCompare(a.date))
 
   const counts: Record<Category, number> = {
-    all: MOCK_ARCHIVE.length,
-    dart: MOCK_ARCHIVE.filter((a) => a.category === 'dart').length,
-    ir: MOCK_ARCHIVE.filter((a) => a.category === 'ir').length,
-    report: MOCK_ARCHIVE.filter((a) => a.category === 'report').length,
-    nps: MOCK_ARCHIVE.filter((a) => a.category === 'nps').length,
+    all: allItems.length,
+    dart: allItems.filter((a) => a.category === 'dart').length,
+    ir: allItems.filter((a) => a.category === 'ir').length,
+    report: allItems.filter((a) => a.category === 'report').length,
+    nps: allItems.filter((a) => a.category === 'nps').length,
   }
+
+  const loadData = useCallback(async () => {
+    setLoading(true)
+    try {
+      const [dart, news] = await Promise.allSettled([
+        fetchDart({ count: 30 }),
+        fetchNews('증권 실적 공시', 20),
+      ])
+      if (dart.status === 'fulfilled') setDartItems(dart.value)
+      if (news.status === 'fulfilled') setNewsItems(news.value)
+      setLastFetched(new Date().toLocaleString('ko-KR'))
+    } catch {
+      // 실패 시 기존 데이터 유지
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   return (
     <div>
       <PageHeader
         title="자료실 · 데이터 수집"
-        description="DART 공시, IR 자료, 애널리스트 리포트, 국민연금 이슈를 한곳에서 관리합니다."
+        description="DART 공시, 뉴스를 실시간으로 수집합니다."
       />
 
       {/* 탭 + 검색 */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
-          {(['all', 'dart', 'ir', 'report', 'nps'] as Category[]).map((c) => (
+          {(['all', 'dart', 'report'] as Category[]).map((c) => (
             <button
               key={c}
               onClick={() => setTab(c)}
@@ -55,7 +107,7 @@ export default function ArchivePage() {
                 tab === c ? 'bg-brand-600 text-white' : 'text-ink-soft hover:bg-slate-100'
               }`}
             >
-              {c === 'all' ? '전체' : CATEGORY_LABELS[c]} ({counts[c]})
+              {c === 'all' ? '전체' : c === 'report' ? '뉴스' : CATEGORY_LABELS[c]} ({counts[c]})
             </button>
           ))}
         </div>
@@ -66,6 +118,12 @@ export default function ArchivePage() {
           placeholder="종목명, 종목코드, 제목 검색..."
           className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
+        <Button variant="secondary" onClick={loadData} disabled={loading}>
+          {loading ? '조회 중...' : '새로고침'}
+        </Button>
+        {lastFetched && (
+          <span className="text-xs text-ink-faint">마지막 조회: {lastFetched}</span>
+        )}
       </div>
 
       <Card>
@@ -75,7 +133,7 @@ export default function ArchivePage() {
             <div key={item.id} className="flex items-center justify-between px-5 py-3.5">
               <div className="flex items-center gap-3">
                 <Badge tone={TONE_MAP[item.category]}>
-                  {CATEGORY_LABELS[item.category]}
+                  {item.category === 'report' ? '뉴스' : CATEGORY_LABELS[item.category]}
                 </Badge>
                 <div>
                   <p className="text-sm font-medium text-ink">{item.title}</p>
@@ -85,21 +143,34 @@ export default function ArchivePage() {
                   </p>
                 </div>
               </div>
-              {item.url && (
-                <span className="text-xs text-ink-faint">[어댑터 연동 예정]</span>
+              {item.url && item.url !== '#' && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-brand-600 hover:underline"
+                >
+                  원문 보기
+                </a>
               )}
             </div>
           ))}
-          {filtered.length === 0 && (
+          {filtered.length === 0 && !loading && (
             <p className="px-5 py-8 text-center text-sm text-ink-faint">
-              검색 결과가 없습니다.
+              {allItems.length === 0 ? 'API 키가 설정되지 않았거나 데이터를 불러오지 못했습니다.' : '검색 결과가 없습니다.'}
             </p>
+          )}
+          {loading && filtered.length === 0 && (
+            <div className="flex items-center justify-center gap-2 px-5 py-8 text-sm text-ink-soft">
+              <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-brand-600 rounded-full animate-spin" />
+              데이터를 불러오는 중...
+            </div>
           )}
         </div>
       </Card>
 
       <p className="mt-4 text-xs text-ink-faint">
-        * 현재 목업 데이터입니다. DART OpenAPI, IR 크롤러, 국민연금공단 API 연동 시 실시간 데이터로 교체됩니다.
+        * DART OpenAPI, 네이버 뉴스 API 연동. 환경변수 설정 필요: DART_API_KEY, NAVER_CLIENT_ID, NAVER_CLIENT_SECRET
       </p>
     </div>
   )

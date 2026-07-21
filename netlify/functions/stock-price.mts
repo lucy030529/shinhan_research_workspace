@@ -1,4 +1,4 @@
-// 네이버 증권에서 실시간 주가 조회
+// 네이버 증권에서 실시간 주가 조회 (병렬 배치)
 // GET /api/stock-price?tickers=005930,000660,035420
 
 export default async (req: Request) => {
@@ -25,30 +25,36 @@ export default async (req: Request) => {
   const codes = tickers.split(',').map((t) => t.trim()).filter(Boolean)
 
   try {
+    // 20개씩 병렬 조회 (타임아웃 방지)
+    const BATCH = 20
     const results: { ticker: string; currentPrice: number; change: number; changePercent: number; volume: number; name: string }[] = []
 
-    // 네이버 증권 모바일 API
-    for (const code of codes) {
-      try {
-        const apiResp = await fetch(
-          `https://m.stock.naver.com/api/stock/${code}/basic`,
-          { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } },
-        )
+    for (let i = 0; i < codes.length; i += BATCH) {
+      const batch = codes.slice(i, i + BATCH)
+      const promises = batch.map(async (code) => {
+        try {
+          const apiResp = await fetch(
+            `https://m.stock.naver.com/api/stock/${code}/basic`,
+            { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } },
+          )
+          if (!apiResp.ok) return null
+          const data = await apiResp.json()
+          return {
+            ticker: code,
+            name: data.stockName || code,
+            currentPrice: parseInt(String(data.closePrice || '0').replace(/,/g, ''), 10) || 0,
+            change: parseInt(String(data.compareToPreviousClosePrice || '0').replace(/,/g, ''), 10) || 0,
+            changePercent: parseFloat(String(data.fluctuationsRatio || '0')) || 0,
+            volume: parseInt(String(data.accumulatedTradingVolume || '0').replace(/,/g, ''), 10) || 0,
+          }
+        } catch {
+          return null
+        }
+      })
 
-        if (!apiResp.ok) continue
-
-        const data = await apiResp.json()
-
-        results.push({
-          ticker: code,
-          name: data.stockName || code,
-          currentPrice: parseInt(String(data.closePrice || '0').replace(/,/g, ''), 10) || 0,
-          change: parseInt(String(data.compareToPreviousClosePrice || '0').replace(/,/g, ''), 10) || 0,
-          changePercent: parseFloat(String(data.fluctuationsRatio || '0')) || 0,
-          volume: parseInt(String(data.accumulatedTradingVolume || '0').replace(/,/g, ''), 10) || 0,
-        })
-      } catch {
-        // 개별 종목 실패 시 스킵
+      const batchResults = await Promise.all(promises)
+      for (const r of batchResults) {
+        if (r) results.push(r)
       }
     }
 

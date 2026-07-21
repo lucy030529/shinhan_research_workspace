@@ -30,13 +30,17 @@ export interface DartItem {
 // 네이버 증권 — 실시간 주가
 export async function fetchStockPrices(tickers: string[]): Promise<StockPrice[]> {
   if (tickers.length === 0) return []
-  const resp = await fetch(`/api/stock-price?tickers=${tickers.join(',')}`)
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({ error: '주가 조회 실패' }))
-    throw new Error(err.error)
+  // 30개씩 분할 요청 (Netlify 타임아웃 방지)
+  const CHUNK = 30
+  const all: StockPrice[] = []
+  for (let i = 0; i < tickers.length; i += CHUNK) {
+    const chunk = tickers.slice(i, i + CHUNK)
+    const resp = await fetch(`/api/stock-price?tickers=${chunk.join(',')}`)
+    if (!resp.ok) continue
+    const data = await resp.json()
+    if (data.prices) all.push(...data.prices)
   }
-  const data = await resp.json()
-  return data.prices || []
+  return all
 }
 
 // 네이버 뉴스 검색

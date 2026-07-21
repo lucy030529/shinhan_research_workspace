@@ -79,9 +79,13 @@ export default async (req: Request) => {
         controller.close()
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e)
+        let userMsg = msg
+        if (msg.includes('credit') || msg.includes('balance')) {
+          userMsg = 'API 크레딧이 부족합니다. 레포트 생성은 로컬 환경(node server.mjs)에서 사용해주세요.'
+        }
         controller.enqueue(
           encoder.encode(
-            `data: ${JSON.stringify({ error: msg })}\n\n`,
+            `data: ${JSON.stringify({ error: userMsg })}\n\n`,
           ),
         )
         controller.close()

@@ -27,6 +27,7 @@ export default function ReportsPage() {
   const outputRef = useRef<HTMLDivElement>(null)
 
   const typeInfo = REPORT_TYPES.find((t) => t.value === reportType)!
+  const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost'
 
   function addFiles(newFiles: FileList | null) {
     if (!newFiles) return
@@ -162,6 +163,14 @@ export default function ReportsPage() {
         title="보고서 작성"
         description="자료 입력 → AI 초안 생성 → 편집 → Word 내보내기."
       />
+
+      {!isLocal && (
+        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <strong>안내:</strong> 레포트 생성 및 DOCX/PDF 다운로드는 로컬 환경에서만 지원됩니다.
+          <code className="mx-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs">node server.mjs</code> 실행 후
+          <code className="mx-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs">npm run dev</code>로 접속해주세요.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         {/* 좌측: 입력 패널 */}

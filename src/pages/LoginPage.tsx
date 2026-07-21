@@ -25,7 +25,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
-          <img src="/logo.svg" alt="신한투자증권 리서치" className="h-8" />
+          <img src="/shinhan-logo.jpg" alt="신한투자증권" className="h-8" />
         </div>
         <form onSubmit={submit} className="rounded-2xl border border-slate-200 bg-white p-8 shadow-card">
           <h1 className="text-lg font-bold text-ink">로그인</h1>

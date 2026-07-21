@@ -16,8 +16,9 @@ export default function AppLayout() {
     <div className="flex min-h-screen bg-slate-50">
       {/* 사이드바 */}
       <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col border-r border-slate-200 bg-white">
-        <div className="flex h-16 items-center border-b border-slate-100 px-5">
-          <img src="/logo.svg" alt="신한투자증권 리서치" className="h-7" />
+        <div className="flex h-16 items-center gap-2 border-b border-slate-100 px-5">
+          <img src="/shinhan-logo.jpg" alt="신한투자증권" className="h-7" />
+          <span className="text-xs font-medium text-ink-faint">리서치</span>
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {NAV_ITEMS.map((item) => (

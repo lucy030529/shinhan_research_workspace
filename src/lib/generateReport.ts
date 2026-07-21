@@ -1,10 +1,9 @@
-// AI 레포트 생성 어댑터.
-// 현재는 목업(시스템 프롬프트 + 사용자 입력을 조합하여 샘플 출력 반환).
-// 실제 운영 시 Claude API 또는 백엔드 /api/generate 엔드포인트로 교체.
+// AI 레포트 생성 — Claude API 스트리밍 호출
+// Netlify Function(/api/generate)을 통해 Anthropic API 호출
 
 import { SYSTEM_PROMPTS, USER_MSG_SUFFIXES, type ReportType } from '../data/reportPrompts'
 
-interface GenerateInput {
+export interface GenerateInput {
   reportType: ReportType
   company: string
   quarter: string
@@ -41,191 +40,84 @@ export function buildPrompt(input: GenerateInput): { system: string; user: strin
   return { system, user }
 }
 
-// 목업 생성 함수 — 실제 API 연동 전 테스트용
-export async function generateReportMock(input: GenerateInput): Promise<string> {
+// API 키 localStorage 관리
+const API_KEY_STORAGE = 'shinhan_anthropic_api_key'
+
+export function getStoredApiKey(): string {
+  return localStorage.getItem(API_KEY_STORAGE) || ''
+}
+
+export function setStoredApiKey(key: string) {
+  if (key) {
+    localStorage.setItem(API_KEY_STORAGE, key)
+  } else {
+    localStorage.removeItem(API_KEY_STORAGE)
+  }
+}
+
+// 스트리밍 레포트 생성
+export async function generateReport(
+  input: GenerateInput,
+  onChunk: (fullText: string) => void,
+): Promise<string> {
   const { system, user } = buildPrompt(input)
-  const co = input.company || '기업명'
-  const qtr = input.quarter || '1Q26'
-  const prevQtr = qtr.replace(/(\d)Q/, (_, n) => `${Math.max(1, Number(n) - 1)}Q`)
-  const mockOutputs: Record<ReportType, string> = {
+  const apiKey = getStoredApiKey()
 
-    // ── 실적 Q&A ──
-    qa: `주요 Q&A
-
-Q. ${qtr} 실적 및 컨센서스 대비 평가?
-A. ${co} ${qtr} 매출액 4.2조원(+18.3% YoY), 영업이익 4,850억원(+32.1% YoY) 기록. 매출액·영업이익 모두 컨센서스(매출 4.0조, OP 4,500억) 상회. OPM 11.5%(+1.2%p YoY)로 수익성 개선세 뚜렷. 고부가 제품 비중 확대(48% → 53%)와 원가율 하락(-0.8%p)이 동시에 작용한 결과
-
-Q. 수주 현황 및 연간 가이던스 달성 전망?
-A. ${qtr} 신규수주 5.8조원 확보. 누적 수주 11.2조원으로 연간 가이던스(22조) 대비 50.9% 달성, 순항 중. 수주잔고 58.3조원(B/S ratio 3.5배)으로 약 3.5년치 일감 확보. 하반기 중동·아시아 대형 프로젝트 발주 예정으로 연간 목표 달성 충분히 가능한 상황
-
-Q. 수익성 개선 요인 및 향후 마진 전망?
-A. 마진 개선 3대 요인: ① 고선가 수주분 매출 인식 본격화(평균 선가 +22% YoY), ② LNG 추진선·VLAC 등 고부가 비중 확대(48→53%), ③ 강재가 하락(-8% YoY) 및 환율 효과(+15원/달러 QoQ). 하반기 OPM 12% 이상 가능 전망. 다만 하반기 인건비 상승(+3~4%)과 하도급 단가 조정 압력은 모니터링 필요
-
-Q. 사업부별 실적 차별화 포인트?
-A. 조선 부문 매출 2.8조원(+22% YoY), OPM 13.2%로 전사 수익성 견인. 해양플랜트 부문 매출 8,500억원(+12% YoY), 수주잔고 기반 안정적 성장 지속. 엔진기계 부문 매출 5,500억원(+8% YoY), 친환경 엔진 수요 확대로 수주 파이프라인 강화 중
-
-Q. 경쟁사 대비 차별화 및 밸류에이션?
-A. ${co} 현 주가 기준 2026E PER 11.2배, PBR 1.8배. 글로벌 피어(현대중공업 13.5배, 한화오션 15.2배) 대비 할인 거래 중. 수주잔고 품질(LNG선 비중 62%)과 마진 개선 속도 감안 시 리레이팅 여력 충분. 투자의견 매수 유지, 목표주가 상향 검토 가능
-
-Q. 주주환원 정책 및 배당 전망?
-A. 2026년 배당성향 25% 이상 유지 방침 재확인. DPS 3,500원(+16.7% YoY) 전망. 자사주 매입·소각 프로그램(500억원 규모) 3분기 중 실행 예정. 총주주환원율 30% 이상 달성 가능 전망`,
-
-    // ── 신한 속보 ──
-    sokbo: `## ${co} ${qtr} 잠정실적 공시, 컨센서스 상회
-
-### 매출·영업이익 모두 시장 기대치 상회
-${co} ${qtr} 잠정 매출액 4.2조원(+18.3% YoY, +5.1% QoQ), 영업이익 4,850억원(+32.1% YoY, +8.7% QoQ) 기록. 매출액 컨센서스(4.0조원) 5.0% 상회, 영업이익 컨센서스(4,500억원) 7.8% 상회. OPM 11.5%(+1.2%p YoY)로 4분기 연속 개선세 지속
-
-고선가 수주분의 매출 인식 본격화가 실적 서프라이즈의 핵심 요인. LNG 추진선·VLAC 등 고부가 선종 비중이 48%에서 53%로 확대되며 믹스 개선 효과 극대화. 강재가 하락(-8% YoY)과 우호적 환율(원/달러 +15원 QoQ)도 긍정적으로 작용
-
-### 수주잔고 확대 기조 지속, 구조적 성장 국면
-${qtr} 신규수주 5.8조원 확보, 누적 수주 11.2조원으로 연간 가이던스(22조원) 대비 50.9% 달성. 수주잔고 58.3조원(B/S ratio 3.5배)으로 약 3.5년치 일감 확보
-
-하반기 중동 LNG 프로젝트(카타르 NFE 확장분), 아시아 FLNG 발주 등 대형 프로젝트 파이프라인 견조. 친환경 규제(EU ETS, FuelEU Maritime) 강화에 따른 이중연료 추진선 교체 수요도 구조적 수주 모멘텀으로 작용 전망
-
-### 투자의견 매수 유지, 실적 모멘텀 강화 구간
-현 주가 기준 2026E PER 11.2배, PBR 1.8배. 글로벌 조선 피어그룹 평균(PER 13.5배) 대비 할인 거래 중. 수주잔고 품질(LNG선 비중 62%)과 마진 개선 속도 감안 시 밸류에이션 매력 충분. 구조적 업황 개선 사이클 초입으로 판단, 추가 주가 상승 여력 존재`,
-
-    // ── 실적 리뷰 ──
-    review: `${co}
-${qtr} 실적 리뷰 — 기대 이상의 성과, 구조적 성장 확인
-
-투자판단 매수 (유지) / 목표주가 185,000원 (유지)
-
-■ 신한생각
-**컨센서스 상회하는 실적, 체력 증명**
-${qtr} 매출액 4.2조원(+18.3% YoY), 영업이익 4,850억원(+32.1% YoY)을 기록했다. 매출액과 영업이익 모두 컨센서스를 각각 5.0%, 7.8% 상회했다. OPM 11.5%(+1.2%p YoY)로 4분기 연속 개선세를 이어갔다. 고선가 수주분의 매출 인식 본격화와 고부가 선종 비중 확대(48→53%)가 핵심 요인이다.
-
-**수주잔고 기반 실적 가시성 확보**
-수주잔고 58.3조원(B/S ratio 3.5배)으로 약 3.5년치 일감을 확보하고 있다. ${qtr} 신규수주 5.8조원을 확보하여 연간 가이던스(22조원) 대비 50.9%를 달성했다. 하반기 중동·아시아 대형 프로젝트 발주 예정으로 연간 목표 달성에 무리가 없을 것으로 전망한다.
-
-**밸류에이션 매력 유효**
-현 주가 기준 2026E PER 11.2배, PBR 1.8배로 글로벌 피어 대비 할인 구간에 위치한다. 수주잔고 품질(LNG선 비중 62%)과 마진 개선 트래킹 감안 시 추가 리레이팅 가능성이 존재한다.
-
-| 구분 | ${prevQtr} | ${qtr} | YoY | 컨센서스 | 서프라이즈 |
-|------|---------|---------|------|---------|----------|
-| 매출액(조원) | 4.0 | 4.2 | +18.3% | 4.0 | +5.0% |
-| 영업이익(억원) | 4,480 | 4,850 | +32.1% | 4,500 | +7.8% |
-| OPM(%) | 10.3 | 11.5 | +1.2%p | 11.0 | +0.5%p |
-| 순이익(억원) | 3,200 | 3,680 | +28.5% | 3,450 | +6.7% |
-
-## ${qtr} 실적 리뷰
-
-### 매출액: 고부가 선종 비중 확대로 성장 가속
-매출액 4.2조원으로 전년동기대비 18.3% 성장했다. 조선 부문(2.8조원, +22% YoY)이 전사 성장을 견인했다. LNG 추진선·VLAC 등 고부가 선종의 매출 인식이 본격화되면서 선종 믹스가 개선(고부가 비중 48→53%)되었다. 해양플랜트(8,500억원, +12% YoY)와 엔진기계(5,500억원, +8% YoY) 부문도 안정적 성장세를 유지했다.
-
-### 영업이익: OPM 11.5%, 4분기 연속 개선
-영업이익 4,850억원으로 전년동기대비 32.1% 증가했다. OPM은 11.5%로 전년동기(10.3%) 대비 1.2%p 개선되었다. 마진 개선의 3대 요인은 ① 고선가 수주분 매출 인식(평균 선가 +22% YoY), ② 강재가 하락(-8% YoY), ③ 우호적 환율(원/달러 +15원 QoQ)이다. 하반기 인건비 상승(+3~4%) 압력에도 불구하고, 고선가 물량 확대로 OPM 12% 이상 달성이 가능할 것으로 전망한다.
-
-### 수주: 연간 가이던스 순항, 하반기 대형 발주 기대
-${qtr} 신규수주 5.8조원을 확보하여 누적 11.2조원(연간 가이던스 22조원의 50.9%)을 달성했다. 수주잔고 58.3조원(B/S ratio 3.5배)으로 역대 최고 수준을 경신했다. 하반기 카타르 NFE 확장분, 아시아 FLNG 등 대형 프로젝트 발주가 예정되어 있어 연간 수주 목표 달성이 무리 없을 것으로 판단한다.
-
-주요 Q&A
-
-Q. 하반기 수익성 개선 지속 가능성?
-A. 고선가 수주분의 매출 인식 비중이 하반기에 더 확대된다. 선종 믹스 개선 트렌드는 구조적이다. 강재가 안정세와 환율 효과도 긍정적이다. 하반기 OPM 12% 이상 달성이 가능할 것으로 전망한다. 다만 인건비 상승(+3~4%)과 하도급 단가 조정은 모니터링 포인트이다.
-
-Q. 수주 파이프라인 및 중장기 성장 전망?
-A. 글로벌 LNG 투자 확대(카타르·모잠비크·캐나다 LNG), 친환경 규제 강화(EU ETS, FuelEU Maritime), 노후선 교체 수요(20년 이상 선령 비중 16%)가 구조적 수주 모멘텀으로 작용하고 있다. 2027~2028년 연간 수주 25조원 이상 달성이 가능할 것으로 전망한다.
-
-Q. 주주환원 정책?
-A. 2026년 배당성향 25% 이상 유지 방침을 재확인했다. DPS 3,500원(+16.7% YoY)을 전망한다. 자사주 매입·소각(500억원)도 3분기 실행 예정이다.`,
-
-    // ── 해외기업 분석 ──
-    overseas: `${co}
-실적 성장 지속, 글로벌 수요 확대의 수혜
-
-투자판단 / 목표주가(LSEG 컨센서스 기준)
-
-■ 신한생각
-**매출·이익 모두 성장, 컨센서스 상회**
-${qtr} 매출 $12.8B(+15.2% YoY, +3.1% QoQ), 조정 영업이익 $2.1B(+28.5% YoY)를 기록했다. 매출과 영업이익 모두 LSEG 컨센서스를 각각 3.2%, 6.8% 상회했다. 조정 OPM 16.4%(+1.7%p YoY)로 수익성 개선이 뚜렷하다. 핵심 사업부의 유기적 성장(+12% YoY)이 실적 서프라이즈의 주된 요인이다.
-
-**가이던스 상향 가능성 열려**
-회사 측은 FY2026 매출 가이던스를 $50~52B(기존 $48~50B)로 상향 조정했다. 조정 EPS 가이던스도 $8.50~9.00(기존 $8.00~8.50)으로 상향했다. 상반기 실적 추이와 수주잔고($85B, +18% YoY) 감안 시 추가 상향 여지가 존재한다.
-
-**글로벌 수요 확대 수혜 지속**
-글로벌 국방예산 증가(NATO +5.2% YoY, 아시아 +8.3% YoY), 에너지 안보 투자 확대, 인프라 현대화 수요가 구조적으로 확대되고 있다. 회사의 밸류체인 전반에 걸친 포트폴리오가 복합 수요를 포착하는 데 유리한 구조이다.
-
-| 구분 | ${prevQtr} | ${qtr} | YoY | 컨센서스 | Beat |
-|------|---------|---------|------|---------|------|
-| 매출($B) | 12.4 | 12.8 | +15.2% | 12.4 | +3.2% |
-| 조정 OP($B) | 1.9 | 2.1 | +28.5% | 2.0 | +6.8% |
-| 조정 OPM(%) | 14.7 | 16.4 | +1.7%p | 15.8 | +0.6%p |
-| 조정 EPS($) | 1.85 | 2.25 | +21.6% | 2.10 | +7.1% |
-
-## ${qtr} 실적 리뷰
-
-### 사업부별 실적
-**방산 부문**: 매출 $6.2B(+18% YoY), OPM 18.5%. 미사일·정밀유도무기 부문이 +25% YoY 성장하며 전체 부문 성장을 견인했다. 수주잔고 $42B(+22% YoY)로 역대 최고 수준이다.
-
-**에너지 부문**: 매출 $3.8B(+12% YoY), OPM 14.2%. LNG 설비 및 해양플랜트 부문의 수주 인식이 본격화되었다. 탈탄소 전환 관련 투자 수요도 지속적으로 유입되고 있다.
-
-**항공 부문**: 매출 $2.8B(+10% YoY), OPM 15.8%. 상업용 항공기 부품 공급과 군용기 MRO 수요가 동시에 확대되었다.
-
-### 가이던스 및 전망
-FY2026 매출 가이던스를 $50~52B로 +4% 상향했다. FCF 가이던스 $5.5~6.0B를 유지하며 재무 건전성도 양호하다. 하반기 대형 국방 계약 수주와 에너지 인프라 투자 확대가 추가 상향 요인이다.
-
-### Valuation
-현 주가 기준 FY2026E PER 22.5배로 5년 평균(18배) 대비 프리미엄 거래 중이나, 수주잔고 성장률(+18% YoY)과 마진 확장 속도 감안 시 정당화 가능한 수준이다. PEG ratio 1.2배로 성장 대비 밸류에이션 부담은 제한적이다.`,
-
-    // ── 컨콜 노트 ──
-    note: `${new Date().toISOString().slice(2, 10).replace(/-/g, '')} ${co} ${qtr}실발노트
-
-**${qtr} 실적요약**
-매출액 4.2조원(+18.3% YoY), 영업이익 4,850억원(+32.1% YoY) 기록
-OPM 11.5%(+1.2%p YoY), 4분기 연속 개선
-컨센서스 대비 매출 +5.0%, OP +7.8% 상회
-순이익 3,680억원(+28.5% YoY)
-
-**사업부문별 매출**
-조선: 2.8조원(+22% YoY) — 고부가 선종(LNG·VLAC) 비중 53%로 확대
-해양플랜트: 8,500억원(+12% YoY) — FPSO·FLNG 수주잔고 기반 안정 성장
-엔진기계: 5,500억원(+8% YoY) — 친환경 이중연료 엔진 수요 증가
-
-**영업이익 분석**
-OPM 11.5%: 고선가 물량 인식(선가 +22% YoY) + 강재가 하락(-8% YoY) + 환율 효과(+15원/달러)
-하반기 OPM 12%+ 전망: 고선가 물량 비중 추가 확대
-리스크: 인건비 +3~4%, 하도급 단가 조정 압력
-
-**수주 및 수주잔고**
-${qtr} 신규수주 5.8조원, 누적 11.2조원(가이던스 22조 대비 50.9%)
-수주잔고 58.3조원(B/S ratio 3.5배), 역대 최고
-LNG선 비중 62%, 평균 선가 지속 상승 중
-
-**하반기 수주 파이프라인**
-카타르 NFE 확장분(LNG선 30+ 척 예상)
-모잠비크 LNG FLNG 프로젝트
-아시아 VLCC·컨테이너선 교체 수요
-EU ETS·FuelEU Maritime 규제에 따른 이중연료 교체 발주
-
-**가이던스/전망**
-연간 수주 가이던스 22조원 달성 가능 재확인
-하반기 매출 성장 가속(고선가 물량 인식 확대)
-2027년 OPM 13%+ 목표 제시
-배당성향 25% 이상 유지, DPS 3,500원 전망
-
-**Q&A**
-
-Q) 수익성 개선 지속 가능성?
-A) 고선가 수주분 매출 인식 본격화 구간. 2024~2025년 수주분(선가 +20~25%)이 2026~2027년 매출로 전환. 강재가 안정 + 환율 효과 지속. 다만 인건비·하도급 단가 상승은 일부 상쇄 요인
-
-Q) 경쟁사 대비 수주 경쟁력?
-A) LNG선 건조 CAPA 글로벌 1위. 멤브레인·Mark III 이중면허 보유. 고부가 선종 트랙레코드가 발주처 선호도에 반영. 중국 조선소 대비 기술·품질 격차 유지 중
-
-Q) 주주환원 계획?
-A) 배당성향 25% 유지. 자사주 매입·소각 500억원 규모 3Q 실행 예정. 중기적으로 총주주환원율 30% 이상 목표
-
-Q) 친환경 전환 관련 수주 전망?
-A) EU ETS 2024년 시행, FuelEU Maritime 2025년 시행으로 이중연료 추진선 교체 수요 본격화. 20년 이상 노후선 비중 16%(약 1.2만 척)로 교체 사이클 진입. 암모니아·메탄올 추진선 R&D 선행 투자 중`,
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  if (apiKey) {
+    headers['x-api-key'] = apiKey
   }
 
-  // 약간의 딜레이로 API 호출 느낌 시뮬레이션
-  await new Promise((r) => setTimeout(r, 1200))
+  const resp = await fetch('/api/generate', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ systemPrompt: system, userMessage: user }),
+  })
 
-  // 프롬프트 정보를 콘솔에 출력 (디버깅용)
-  console.log('[generateReport] System prompt length:', system.length)
-  console.log('[generateReport] User message length:', user.length)
+  if (!resp.ok) {
+    let errorMsg = `서버 오류 (${resp.status})`
+    try {
+      const err = await resp.json()
+      errorMsg = err.error || errorMsg
+    } catch { /* ignore */ }
+    throw new Error(errorMsg)
+  }
 
-  return mockOutputs[input.reportType]
+  if (!resp.body) {
+    throw new Error('스트리밍 응답을 받을 수 없습니다.')
+  }
+
+  const reader = resp.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let fullText = ''
+
+  while (true) {
+    const { done, value } = await reader.read()
+    if (done) break
+    buffer += decoder.decode(value, { stream: true })
+
+    const lines = buffer.split('\n')
+    buffer = lines.pop()!
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue
+      try {
+        const data = JSON.parse(line.slice(6))
+        if (data.error) throw new Error(data.error)
+        if (data.done) break
+        if (data.text) {
+          fullText += data.text
+          onChunk(fullText)
+        }
+      } catch (e) {
+        if (e instanceof SyntaxError) continue
+        throw e
+      }
+    }
+  }
+
+  return fullText
 }

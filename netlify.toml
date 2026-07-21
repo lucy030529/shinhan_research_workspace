@@ -2,7 +2,17 @@
   command = "npm run build"
   publish = "dist"
 
-# SPA 라우팅: 모든 경로를 index.html로 (react-router)
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# API 경로는 Function으로 처리
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# SPA 라우팅: 나머지 경로를 index.html로 (react-router)
 [[redirects]]
   from = "/*"
   to = "/index.html"

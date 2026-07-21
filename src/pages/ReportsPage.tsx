@@ -124,6 +124,32 @@ export default function ReportsPage() {
     }
   }
 
+  async function handleDownloadPdf() {
+    try {
+      const resp = await fetch('/api/download-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          markdown: rawMarkdown,
+          company: company || '레포트',
+        }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json()
+        alert(err.error || 'PDF 생성 실패')
+        return
+      }
+      const blob = await resp.blob()
+      const fname = `${company || '레포트'}_컨콜노트.pdf`.replace(/\s+/g, '_')
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = fname
+      a.click()
+    } catch {
+      alert('PDF 다운로드 실패. 로컬 서버(node server.mjs)가 실행 중인지 확인해주세요.')
+    }
+  }
+
   function handleViewPrompt() {
     setShowPrompt(!showPrompt)
   }
@@ -334,6 +360,11 @@ export default function ReportsPage() {
                 <button className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 transition-colors" onClick={handleDownloadDocx}>
                   DOCX 다운로드
                 </button>
+                {reportType === 'note' && (
+                  <button className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition-colors" onClick={handleDownloadPdf}>
+                    PDF 다운로드
+                  </button>
+                )}
                 <button className="rounded-md border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-brand-50 hover:text-brand-600 hover:border-brand-300 transition-colors" onClick={handleDownloadTxt}>
                   TXT 다운로드
                 </button>

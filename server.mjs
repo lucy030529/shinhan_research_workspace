@@ -157,6 +157,74 @@ const server = createServer(async (req, res) => {
         res.end(JSON.stringify({ error: `파일 읽기 실패: ${e.message}` }))
       }
     })
+  } else if (req.method === 'POST' && req.url === '/api/download-pdf') {
+    // 컨콜 노트 PDF 생성
+    let body = ''
+    for await (const chunk of req) body += chunk
+
+    let parsed
+    try {
+      parsed = JSON.parse(body)
+    } catch {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: '잘못된 요청 형식' }))
+      return
+    }
+
+    const { markdown, company } = parsed
+    if (!markdown) {
+      res.writeHead(400, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: '마크다운 내용이 비어있습니다.' }))
+      return
+    }
+
+    const outputFile = join(tmpdir(), `note-${randomUUID()}.pdf`)
+    const scriptPath = join(process.cwd(), 'scripts', 'build_docx.py')
+
+    console.log(`[PDF 생성] 컨콜노트 | ${company}`)
+
+    const proc = spawn('python', [
+      scriptPath,
+      '--type', 'note',
+      '--company', company || '레포트',
+      '--format', 'pdf',
+      '--output', outputFile,
+    ], {
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: true,
+    })
+
+    proc.stdin.write(markdown)
+    proc.stdin.end()
+
+    let stderr = ''
+    proc.stderr.on('data', (data) => { stderr += data.toString('utf-8') })
+
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        console.error(`[PDF 오류] ${stderr}`)
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: `PDF 생성 실패: ${stderr}` }))
+        return
+      }
+
+      try {
+        const pdfBuf = readFileSync(outputFile)
+        const fname = `${company || '레포트'}_컨콜노트.pdf`.replace(/\s+/g, '_')
+
+        res.writeHead(200, {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': `attachment; filename="${encodeURIComponent(fname)}"`,
+          'Content-Length': pdfBuf.length,
+        })
+        res.end(pdfBuf)
+        unlinkSync(outputFile)
+        console.log(`[PDF 완료] ${fname}`)
+      } catch (e) {
+        res.writeHead(500, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ error: `파일 읽기 실패: ${e.message}` }))
+      }
+    })
   } else {
     res.writeHead(404, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ error: 'Not Found' }))

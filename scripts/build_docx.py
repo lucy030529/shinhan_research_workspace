@@ -300,6 +300,70 @@ def build_docx_from_template(raw_md, report_type, company, pub_date_kr):
     return buf
 
 
+def build_note_pdf(raw_md):
+    """컨콜 노트를 PDF로 생성 (fpdf2)."""
+    from fpdf import FPDF
+
+    class NotePDF(FPDF):
+        pass
+
+    pdf = NotePDF(orientation='P', unit='mm', format='A4')
+    pdf.add_font('malgun', '', r'C:\Windows\Fonts\malgun.ttf')
+    pdf.add_font('malgun', 'B', r'C:\Windows\Fonts\malgunbd.ttf')
+    pdf.set_margins(20, 20, 20)
+    pdf.set_auto_page_break(auto=True, margin=20)
+    pdf.add_page()
+
+    cleaned = '\n'.join(
+        line for line in raw_md.split('\n')
+        if not line.strip().startswith('발간일:') and not line.strip().startswith('기업명:') and not line.strip().startswith('분기:') and line.strip() != '---'
+    )
+
+    MC = dict(new_x='LMARGIN', new_y='NEXT')
+
+    for line in cleaned.split('\n'):
+        s = line.strip()
+        if not s:
+            pdf.ln(3)
+            continue
+
+        if s.startswith('**') and s.endswith('**'):
+            pdf.ln(2)
+            pdf.set_font('malgun', 'B', 10)
+            pdf.multi_cell(0, 6, _clean_text(s[2:-2]), **MC)
+            pdf.ln(1)
+            continue
+
+        if s.startswith('Q)') or s.startswith('Q '):
+            pdf.ln(1)
+            pdf.set_font('malgun', 'B', 10)
+            pdf.multi_cell(0, 6, _clean_text(s), **MC)
+            continue
+
+        if '**' in s:
+            parts = s.split('**')
+            pdf.set_font('malgun', '', 10)
+            for idx, part in enumerate(parts):
+                if not part:
+                    continue
+                if idx % 2 == 1:
+                    pdf.set_font('malgun', 'B', 10)
+                else:
+                    pdf.set_font('malgun', '', 10)
+                pdf.write(6, _clean_text(part))
+            pdf.ln(6)
+            pdf.set_x(pdf.l_margin)
+            continue
+
+        pdf.set_font('malgun', '', 10)
+        pdf.multi_cell(0, 6, _clean_text(s), **MC)
+
+    buf = io.BytesIO()
+    pdf.output(buf)
+    buf.seek(0)
+    return buf
+
+
 def _clean_text(text):
     """서로게이트 문자 및 XML 호환 불가 문자 제거."""
     import re
@@ -315,6 +379,7 @@ def main():
     parser.add_argument('--type', default='qa', choices=['qa', 'sokbo', 'review', 'overseas', 'note'])
     parser.add_argument('--company', default='레포트')
     parser.add_argument('--date', default='')
+    parser.add_argument('--format', default='docx', choices=['docx', 'pdf'])
     parser.add_argument('--output', required=True)
     args = parser.parse_args()
 
@@ -325,7 +390,10 @@ def main():
         print("마크다운 입력이 비어있습니다.", file=sys.stderr)
         sys.exit(1)
 
-    buf = build_docx_from_template(raw_md, args.type, args.company, args.date)
+    if args.format == 'pdf':
+        buf = build_note_pdf(raw_md)
+    else:
+        buf = build_docx_from_template(raw_md, args.type, args.company, args.date)
 
     with open(args.output, 'wb') as f:
         f.write(buf.read())

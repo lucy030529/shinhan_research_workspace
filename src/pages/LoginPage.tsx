@@ -22,7 +22,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4" style={{ background: 'linear-gradient(to right top, #00236e, #083b88, #1455a2, #226fbc, #328ad5, #5a9be1, #78adef, #94bff9, #b8cdfb, #d5dcfc, #ededfd, #ffffff)' }}>
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
           <img src="/logo.svg" alt="신한투자증권 리서치" className="h-8" />

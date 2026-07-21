@@ -1,6 +1,6 @@
 // 공통 유틸
 
-export const GAP_WARNING_THRESHOLD = 100 // 괴리율 |x| >= 100% 이면 경고
+export const GAP_WARNING_THRESHOLD = 15 // 괴리율 |x| >= 15% 이면 경고
 
 export function daysUntil(iso: string): number {
   const target = new Date(iso + 'T00:00:00')

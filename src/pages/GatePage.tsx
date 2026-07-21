@@ -20,7 +20,7 @@ export default function GatePage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4" style={{ background: 'linear-gradient(to right top, #00236e, #083b88, #1455a2, #226fbc, #328ad5)' }}>
+    <div className="flex min-h-screen items-center justify-center bg-brand-950 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
           <div className="rounded-xl bg-white px-4 py-3">

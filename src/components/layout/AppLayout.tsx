@@ -15,8 +15,11 @@ export default function AppLayout() {
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* 사이드바 */}
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col border-r border-slate-200 bg-white">
-        <div className="flex h-16 items-center border-b border-slate-100 px-5">
+      <aside
+        className="fixed inset-y-0 left-0 z-20 flex w-60 flex-col border-r border-brand-700/20"
+        style={{ background: 'linear-gradient(to right top, #00236e, #083b88, #1455a2, #226fbc, #328ad5, #5a9be1, #78adef, #94bff9, #b8cdfb, #d5dcfc, #ededfd, #ffffff)' }}
+      >
+        <div className="flex h-16 items-center border-b border-white/20 px-5">
           <img src="/logo.svg" alt="신한투자증권 리서치" className="h-7" />
         </div>
         <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -28,8 +31,8 @@ export default function AppLayout() {
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? 'bg-brand-50 text-brand-700'
-                    : 'text-ink-soft hover:bg-slate-50 hover:text-ink'
+                    ? 'bg-white/30 text-white'
+                    : 'text-white/80 hover:bg-white/15 hover:text-white'
                 }`
               }
             >
@@ -38,14 +41,14 @@ export default function AppLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="border-t border-slate-100 p-3">
-          <p className="px-3 text-[11px] text-ink-faint">기업분석2부 리서치 워크스페이스</p>
+        <div className="border-t border-white/20 p-3">
+          <p className="px-3 text-[11px] text-white/60">기업분석2부 리서치 워크스페이스</p>
         </div>
       </aside>
 
       {/* 본문 */}
       <div className="flex flex-1 flex-col pl-60">
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-slate-200 bg-white/90 px-6 backdrop-blur">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-brand-100 bg-white/95 px-6 backdrop-blur">
           <div className="text-sm text-ink-faint">
             {new Date().toLocaleDateString('ko-KR', {
               year: 'numeric',

@@ -9,7 +9,7 @@ import GapRatioPage from './pages/GapRatioPage'
 import DailyAgentPage from './pages/DailyAgentPage'
 import ReportsPage from './pages/ReportsPage'
 import ArchivePage from './pages/ArchivePage'
-import WorklogPage from './pages/WorklogPage'
+import CalendarPage from './pages/CalendarPage'
 import TypoCheckPage from './pages/TypoCheckPage'
 
 export default function App() {
@@ -37,7 +37,7 @@ export default function App() {
         <Route path="/daily" element={<DailyAgentPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/archive" element={<ArchivePage />} />
-        <Route path="/worklog" element={<WorklogPage />} />
+        <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/typo" element={<TypoCheckPage />} />
       </Route>
     </Routes>

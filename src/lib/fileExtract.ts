@@ -1,7 +1,35 @@
 // 파일에서 텍스트 추출 (클라이언트 사이드)
-// PDF → pdf.js 없이 텍스트 파일/XLSX만 지원. PDF는 텍스트 안내 표시.
+// PDF: pdfjs-dist, DOCX: mammoth, XLSX: xlsx
 
 import * as XLSX from 'xlsx'
+import * as pdfjsLib from 'pdfjs-dist'
+import mammoth from 'mammoth'
+
+// PDF.js 워커 설정
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`
+
+async function extractPdfText(file: File): Promise<string> {
+  const buf = await file.arrayBuffer()
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise
+  const pages: string[] = []
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i)
+    const content = await page.getTextContent()
+    const text = content.items
+      .map((item) => ('str' in item ? item.str : ''))
+      .join(' ')
+    if (text.trim()) pages.push(text)
+  }
+
+  return pages.join('\n')
+}
+
+async function extractDocxText(file: File): Promise<string> {
+  const buf = await file.arrayBuffer()
+  const result = await mammoth.extractRawText({ arrayBuffer: buf })
+  return result.value
+}
 
 export async function extractText(file: File): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
@@ -24,11 +52,19 @@ export async function extractText(file: File): Promise<string> {
   }
 
   if (ext === 'pdf') {
-    return `[PDF 파일: ${file.name}] — 클라이언트에서 PDF 텍스트 추출은 지원하지 않습니다. 텍스트를 직접 붙여넣거나 TXT/XLSX 형식으로 변환해주세요.`
+    try {
+      return await extractPdfText(file)
+    } catch (e) {
+      return `[PDF 파일: ${file.name}] 텍스트 추출 실패: ${e instanceof Error ? e.message : '알 수 없는 오류'}. 텍스트를 직접 붙여넣어주세요.`
+    }
   }
 
   if (ext === 'docx') {
-    return `[DOCX 파일: ${file.name}] — 클라이언트에서 DOCX 텍스트 추출은 지원하지 않습니다. 텍스트를 직접 붙여넣어주세요.`
+    try {
+      return await extractDocxText(file)
+    } catch (e) {
+      return `[DOCX 파일: ${file.name}] 텍스트 추출 실패: ${e instanceof Error ? e.message : '알 수 없는 오류'}. 텍스트를 직접 붙여넣어주세요.`
+    }
   }
 
   return `[파일: ${file.name}] — 지원하지 않는 형식입니다.`

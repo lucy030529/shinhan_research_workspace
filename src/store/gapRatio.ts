@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { GapRatioItem } from '../types'
+import analystCoverageData from '../data/analyst-coverage.json'
 
 interface GapRatioState {
   items: GapRatioItem[]
@@ -13,6 +14,8 @@ interface GapRatioState {
   refreshPrices: (prices: { ticker: string; currentPrice: number }[]) => void
   /** 리포트 발간 시 목표주가 갱신 */
   syncTargetPrices: (reports: { ticker: string; name: string; targetPrice: number }[]) => number
+  /** 엑셀 기반 목표주가 초기화 */
+  loadAnalystTargetPrices: () => number
 }
 
 let seq = Date.now()
@@ -99,6 +102,28 @@ export const useGapRatio = create<GapRatioState>()(
         return updated
       },
 
+      loadAnalystTargetPrices: () => {
+        const entries = analystCoverageData.coverage.filter((e) => e.targetPrice > 0)
+        let count = 0
+        set(() => {
+          const now = new Date().toISOString()
+          const items: GapRatioItem[] = entries.map((e) => {
+            count++
+            return {
+              id: 'at' + count,
+              ticker: '',
+              name: e.company,
+              targetPrice: e.targetPrice,
+              currentPrice: 0,
+              gapRatio: 0,
+              updatedAt: now,
+            }
+          })
+          return { items }
+        })
+        return count
+      },
+
       refreshPrices: (prices) =>
         set((s) => {
           const now = new Date().toISOString()
@@ -120,7 +145,7 @@ export const useGapRatio = create<GapRatioState>()(
     }),
     {
       name: 'shinhan-gap-ratio',
-      version: 2,
+      version: 3,
       migrate: () => ({ items: [], lastRefreshed: null }),
     },
   ),

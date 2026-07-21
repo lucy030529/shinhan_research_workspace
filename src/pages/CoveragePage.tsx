@@ -11,8 +11,12 @@ export default function CoveragePage() {
   const [modal, setModal] = useState<'add' | CoverageItem | null>(null)
   const [showImport, setShowImport] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [analystFilter, setAnalystFilter] = useState<string>('')
+
+  const analysts = [...new Set(items.map((c) => c.analyst))].sort()
 
   const rows = [...items]
+    .filter((c) => !analystFilter || c.analyst === analystFilter)
     .map((c) => ({ ...c, days: daysUntil(c.nextDue) }))
     .sort((a, b) => a.days - b.days)
 
@@ -52,11 +56,24 @@ export default function CoveragePage() {
         description="담당 종목의 6개월 업데이트 주기를 관리합니다."
       />
 
-      <div className="mb-4 flex gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <Button onClick={() => setModal('add')}>+ 종목 등록</Button>
         <Button variant="secondary" onClick={() => setShowImport(true)}>
           엑셀 임포트
         </Button>
+        <select
+          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-ink"
+          value={analystFilter}
+          onChange={(e) => setAnalystFilter(e.target.value)}
+        >
+          <option value="">전체 애널리스트 ({items.length})</option>
+          {analysts.map((a) => (
+            <option key={a} value={a}>
+              {a} ({items.filter((c) => c.analyst === a).length})
+            </option>
+          ))}
+        </select>
+        <span className="text-sm text-ink-faint">{rows.length}건 표시</span>
       </div>
 
       <Card>

@@ -5,48 +5,27 @@ import { useGapRatio } from '../store/gapRatio'
 import { useTasks } from '../store/tasks'
 import { daysUntil, dueTone, formatPct, gapTone, GAP_WARNING_THRESHOLD } from '../lib/utils'
 import { useAuth } from '../store/auth'
-import { fetchShinhanResearch, fetchStockPrices } from '../lib/api'
 
 export default function DashboardPage() {
   const user = useAuth((s) => s.user)
   const coverageItems = useCoverage((s) => s.items)
-  const syncFromReports = useCoverage((s) => s.syncFromReports)
+  const loadAnalystCoverage = useCoverage((s) => s.loadAnalystCoverage)
   const gapItems = useGapRatio((s) => s.items)
-  const syncTargetPrices = useGapRatio((s) => s.syncTargetPrices)
-  const refreshPrices = useGapRatio((s) => s.refreshPrices)
+  const loadAnalystTargetPrices = useGapRatio((s) => s.loadAnalystTargetPrices)
   const taskItems = useTasks((s) => s.items)
   const [syncStatus, setSyncStatus] = useState('')
 
-  // 대시보드 로드 시 신한 리서치 리포트와 자동 동기화
+  // 대시보드 로드 시 엑셀 기반 커버리지 데이터 로드
   useEffect(() => {
-    async function sync() {
-      setSyncStatus('동기화 중...')
-      try {
-        const { items } = await fetchShinhanResearch({ pageSize: 50 })
-        if (items.length === 0) {
-          setSyncStatus('신한 리서치 리포트를 가져오지 못했습니다.')
-          return
-        }
-        const reports = items.filter((r) => r.ticker)
-        const covUpdated = syncFromReports(reports.map((r) => ({ ticker: r.ticker, name: r.company, date: r.date })))
-        const gapUpdated = syncTargetPrices(reports.map((r) => ({ ticker: r.ticker, name: r.company, targetPrice: r.targetPrice })))
-
-        // 괴리율 종목들의 현재가도 갱신
-        const gapTickers = useGapRatio.getState().items.map((g) => g.ticker).filter(Boolean)
-        if (gapTickers.length > 0) {
-          try {
-            const prices = await fetchStockPrices(gapTickers)
-            refreshPrices(prices.map((p) => ({ ticker: p.ticker, currentPrice: p.currentPrice })))
-          } catch { /* 주가 조회 실패해도 계속 */ }
-        }
-
-        setSyncStatus(`동기화 완료: ${reports.length}개 종목 로드, 커버리지 ${covUpdated}건·목표주가 ${gapUpdated}건 갱신`)
-      } catch (e) {
-        setSyncStatus(`동기화 실패: ${e instanceof Error ? e.message : String(e)}`)
-      }
+    setSyncStatus('커버리지 데이터 로드 중...')
+    try {
+      const covCount = loadAnalystCoverage()
+      const gapCount = loadAnalystTargetPrices()
+      setSyncStatus(`기업분석2부 커버리지 로드 완료: ${covCount}개 종목, 목표주가 ${gapCount}건`)
+    } catch (e) {
+      setSyncStatus(`데이터 로드 실패: ${e instanceof Error ? e.message : String(e)}`)
     }
-    sync()
-  }, [syncFromReports, syncTargetPrices, refreshPrices])
+  }, [loadAnalystCoverage, loadAnalystTargetPrices])
 
   const dueSoon = [...coverageItems]
     .map((c) => ({ ...c, days: daysUntil(c.nextDue) }))

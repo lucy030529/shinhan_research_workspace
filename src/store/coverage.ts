@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { CoverageItem } from '../types'
+import analystCoverageData from '../data/analyst-coverage.json'
 
 interface CoverageState {
   items: CoverageItem[]
@@ -11,6 +12,8 @@ interface CoverageState {
   importBulk: (rows: Omit<CoverageItem, 'id' | 'nextDue'>[]) => number
   /** 리포트 발간일 기준으로 커버리지 기한 갱신 */
   syncFromReports: (reports: { ticker: string; name: string; date: string }[]) => number
+  /** 엑셀 기반 애널리스트 커버리지 초기화 */
+  loadAnalystCoverage: () => number
 }
 
 let seq = Date.now()
@@ -90,6 +93,26 @@ export const useCoverage = create<CoverageState>()(
         return updated
       },
 
+      loadAnalystCoverage: () => {
+        const entries = analystCoverageData.coverage
+        let count = 0
+        set((s) => {
+          const items: CoverageItem[] = entries.map((e) => {
+            count++
+            return {
+              id: 'ac' + count,
+              ticker: '',
+              name: e.company,
+              analyst: e.analyst,
+              lastUpdated: e.lastUpdated,
+              nextDue: addSixMonths(e.lastUpdated),
+            }
+          })
+          return { items, initialized: true }
+        })
+        return count
+      },
+
       importBulk: (rows) => {
         const existing = get().items
         let added = 0
@@ -113,7 +136,7 @@ export const useCoverage = create<CoverageState>()(
     }),
     {
       name: 'shinhan-coverage',
-      version: 2,
+      version: 3,
       migrate: () => ({ items: [], initialized: false }),
     },
   ),

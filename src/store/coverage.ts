@@ -96,7 +96,7 @@ export const useCoverage = create<CoverageState>()(
       loadAnalystCoverage: () => {
         const entries = analystCoverageData.coverage
         let count = 0
-        set((s) => {
+        set(() => {
           const items: CoverageItem[] = entries.map((e) => {
             count++
             return {

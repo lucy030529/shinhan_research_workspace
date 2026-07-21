@@ -9,6 +9,8 @@ interface CoverageState {
   update: (id: string, patch: Partial<Omit<CoverageItem, 'id'>>) => void
   remove: (id: string) => void
   importBulk: (rows: Omit<CoverageItem, 'id' | 'nextDue'>[]) => number
+  /** 리포트 발간일 기준으로 커버리지 기한 갱신 */
+  syncFromReports: (reports: { ticker: string; date: string }[]) => number
 }
 
 let seq = Date.now()
@@ -47,6 +49,27 @@ export const useCoverage = create<CoverageState>()(
 
       remove: (id) =>
         set((s) => ({ items: s.items.filter((c) => c.id !== id) })),
+
+      syncFromReports: (reports) => {
+        let updated = 0
+        set((s) => ({
+          items: s.items.map((c) => {
+            const report = reports.find((r) => r.ticker === c.ticker)
+            if (!report) return c
+            // 리포트 발간일이 기존 lastUpdated보다 최신이면 갱신
+            if (report.date > c.lastUpdated) {
+              updated++
+              return {
+                ...c,
+                lastUpdated: report.date,
+                nextDue: addSixMonths(report.date),
+              }
+            }
+            return c
+          }),
+        }))
+        return updated
+      },
 
       importBulk: (rows) => {
         const existing = get().items

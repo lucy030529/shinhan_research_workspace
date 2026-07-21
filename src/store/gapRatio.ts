@@ -12,6 +12,8 @@ interface GapRatioState {
   remove: (id: string) => void
   /** 현재가 일괄 갱신 (어댑터에서 가져온 데이터) */
   refreshPrices: (prices: { ticker: string; currentPrice: number }[]) => void
+  /** 리포트 발간 시 목표주가 갱신 */
+  syncTargetPrices: (reports: { ticker: string; name: string; targetPrice: number }[]) => number
 }
 
 let seq = Date.now()
@@ -59,6 +61,27 @@ export const useGapRatio = create<GapRatioState>()(
 
       remove: (id) =>
         set((s) => ({ items: s.items.filter((g) => g.id !== id) })),
+
+      syncTargetPrices: (reports) => {
+        let updated = 0
+        set((s) => {
+          const now = new Date().toISOString()
+          return {
+            items: s.items.map((g) => {
+              const report = reports.find((r) => r.ticker === g.ticker && r.targetPrice > 0)
+              if (!report || report.targetPrice === g.targetPrice) return g
+              updated++
+              return {
+                ...g,
+                targetPrice: report.targetPrice,
+                gapRatio: calcGap(report.targetPrice, g.currentPrice),
+                updatedAt: now,
+              }
+            }),
+          }
+        })
+        return updated
+      },
 
       refreshPrices: (prices) =>
         set((s) => {

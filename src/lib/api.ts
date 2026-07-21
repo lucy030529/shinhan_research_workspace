@@ -58,7 +58,10 @@ export interface ShinhanReport {
   category: string
   boardName: string
   company: string
+  ticker: string
   date: string
+  targetPrice: number
+  opinion: string
   pdfUrl: string
 }
 

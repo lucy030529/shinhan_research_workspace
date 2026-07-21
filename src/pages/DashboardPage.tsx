@@ -1,15 +1,34 @@
+import { useEffect, useState } from 'react'
 import { Badge, Card, CardHeader, PageHeader, StatTile } from '../components/ui'
 import { useCoverage } from '../store/coverage'
 import { useGapRatio } from '../store/gapRatio'
 import { useTasks } from '../store/tasks'
 import { daysUntil, dueTone, formatPct, gapTone, GAP_WARNING_THRESHOLD } from '../lib/utils'
 import { useAuth } from '../store/auth'
+import { fetchShinhanResearch } from '../lib/api'
 
 export default function DashboardPage() {
   const user = useAuth((s) => s.user)
   const coverageItems = useCoverage((s) => s.items)
+  const syncFromReports = useCoverage((s) => s.syncFromReports)
   const gapItems = useGapRatio((s) => s.items)
+  const syncTargetPrices = useGapRatio((s) => s.syncTargetPrices)
   const taskItems = useTasks((s) => s.items)
+  const [syncStatus, setSyncStatus] = useState('')
+
+  // 대시보드 로드 시 신한 리서치 리포트와 자동 동기화
+  useEffect(() => {
+    fetchShinhanResearch({ pageSize: 30 })
+      .then(({ items }) => {
+        const reports = items.filter((r) => r.ticker)
+        const covUpdated = syncFromReports(reports.map((r) => ({ ticker: r.ticker, date: r.date })))
+        const gapUpdated = syncTargetPrices(reports.map((r) => ({ ticker: r.ticker, name: r.company, targetPrice: r.targetPrice })))
+        if (covUpdated || gapUpdated) {
+          setSyncStatus(`리포트 동기화: 커버리지 ${covUpdated}건, 목표주가 ${gapUpdated}건 갱신`)
+        }
+      })
+      .catch(() => { /* 동기화 실패해도 무시 */ })
+  }, [syncFromReports, syncTargetPrices])
 
   const dueSoon = [...coverageItems]
     .map((c) => ({ ...c, days: daysUntil(c.nextDue) }))
@@ -26,6 +45,12 @@ export default function DashboardPage() {
         title={`안녕하세요, ${user?.name}님`}
         description="오늘의 리서치 업무 현황을 한눈에 확인하세요."
       />
+
+      {syncStatus && (
+        <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-700">
+          {syncStatus}
+        </div>
+      )}
 
       {/* 요약 지표 */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

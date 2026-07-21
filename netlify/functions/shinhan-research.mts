@@ -64,6 +64,8 @@ export default async (req: Request) => {
     const items = await Promise.all(
       shinhanReports.map(async (r) => {
         let pdfUrl = ''
+        let targetPrice = 0
+        let opinion = ''
         try {
           const detailResp = await fetch(
             `https://m.stock.naver.com/api/research/company/${r.researchId}`,
@@ -72,9 +74,11 @@ export default async (req: Request) => {
           if (detailResp.ok) {
             const detail: NaverResearchDetail = await detailResp.json()
             pdfUrl = detail.researchContent?.attachUrl || ''
+            targetPrice = parseInt(String(detail.researchContent?.prevGoalPrice || '0').replace(/,/g, ''), 10) || 0
+            opinion = detail.researchContent?.opinion || ''
           }
         } catch {
-          // PDF URL 못 가져와도 목록은 표시
+          // 상세 정보 못 가져와도 목록은 표시
         }
 
         return {
@@ -84,7 +88,10 @@ export default async (req: Request) => {
           category: r.category || '종목분석',
           boardName: '',
           company: r.itemName || '',
+          ticker: r.itemCode || '',
           date: r.writeDate || '',
+          targetPrice,
+          opinion,
           pdfUrl: pdfUrl || r.endUrl,
         }
       }),

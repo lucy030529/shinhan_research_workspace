@@ -1,5 +1,29 @@
-// 신한투자증권 리서치 리포트 크롤링
-// GET /api/shinhan-research?page=1&pageSize=20&boardName=gistock
+// 신한투자증권 리서치 리포트 (네이버 증권 API 경유)
+// GET /api/shinhan-research?page=1&pageSize=20
+
+interface NaverResearchItem {
+  researchCategory: string
+  category: string
+  itemCode: string
+  itemName: string
+  researchId: number
+  title: string
+  brokerName: string
+  writeDate: string
+  readCount: string
+  endUrl: string
+}
+
+interface NaverResearchDetail {
+  researchContent: {
+    attachUrl: string
+    content: string
+    opinion: string
+    prevGoalPrice: string
+    priceAtWriteDate: string
+    [key: string]: string
+  }
+}
 
 export default async (req: Request) => {
   if (req.method === 'OPTIONS') {
@@ -14,61 +38,59 @@ export default async (req: Request) => {
   }
 
   const url = new URL(req.url)
-  const page = url.searchParams.get('page') || '1'
-  const pageSize = url.searchParams.get('pageSize') || '20'
-  const boardName = url.searchParams.get('boardName') || '' // gistock, gicomment, foreignstock 등
-  const keyword = url.searchParams.get('keyword') || ''
+  const pageSize = parseInt(url.searchParams.get('pageSize') || '30', 10)
 
   try {
-    const params = new URLSearchParams({
-      page,
-      pageSize,
-    })
-    if (boardName) params.set('boardName', boardName)
-    if (keyword) params.set('query', keyword)
+    // 1. 네이버 증권 리서치 목록에서 신한투자증권 리포트 필터링
+    // 충분히 많이 가져와서 신한 것만 필터
+    const listResp = await fetch(
+      `https://m.stock.naver.com/api/research/company?page=1&pageSize=100`,
+      { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } },
+    )
 
-    const resp = await fetch('https://www.shinhansec.com/siw/etc/browse/search05/data.do', {
-      method: 'POST',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Referer': 'https://www.shinhansec.com/siw/insights/research/list/view-popup.do',
-      },
-      body: params.toString(),
-    })
-
-    if (!resp.ok) {
-      return new Response(JSON.stringify({ error: `신한 리서치 API 오류: ${resp.status}` }), {
-        status: resp.status,
+    if (!listResp.ok) {
+      return new Response(JSON.stringify({ error: `네이버 리서치 API 오류: ${listResp.status}` }), {
+        status: listResp.status,
         headers: { 'Content-Type': 'application/json' },
       })
     }
 
-    const data = await resp.json()
-    const collection = data.body?.collectionList?.[0]
-    const rawItems = collection?.itemList || []
-    const total = collection?.thisTotalCount || 0
+    const allReports: NaverResearchItem[] = await listResp.json()
+    const shinhanReports = allReports
+      .filter((r) => r.brokerName.includes('신한'))
+      .slice(0, pageSize)
 
-    const items = rawItems.map((item: Record<string, string>) => {
-      const boardName2 = item.BOARD_NAME || ''
-      const docId = item.DOCID || item.MESSAGE_ID || ''
-      const viewUrl = boardName2 && docId
-        ? `https://www.shinhansec.com/siw/board/message/view.file.pop.do?boardName=${boardName2}&messageId=${docId}`
-        : ''
+    // 2. 각 리포트의 상세 정보에서 PDF URL 가져오기
+    const items = await Promise.all(
+      shinhanReports.map(async (r) => {
+        let pdfUrl = ''
+        try {
+          const detailResp = await fetch(
+            `https://m.stock.naver.com/api/research/company/${r.researchId}`,
+            { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } },
+          )
+          if (detailResp.ok) {
+            const detail: NaverResearchDetail = await detailResp.json()
+            pdfUrl = detail.researchContent?.attachUrl || ''
+          }
+        } catch {
+          // PDF URL 못 가져와도 목록은 표시
+        }
 
-      return {
-        id: docId,
-        title: item.TITLE || '',
-        analyst: item.REGISTER_NICKNAME || '',
-        category: item.BOARD_TITLE || item.VARIABLE_FIELD_NAME3 || '',
-        boardName: boardName2,
-        company: item.VARIABLE_FIELD_NAME1 || item.VARIABLE_FIELD_NAME2 || '',
-        date: item.DATE || '',
-        pdfUrl: viewUrl,
-      }
-    })
+        return {
+          id: String(r.researchId),
+          title: r.title,
+          analyst: '',
+          category: r.category || '종목분석',
+          boardName: '',
+          company: r.itemName || '',
+          date: r.writeDate || '',
+          pdfUrl: pdfUrl || r.endUrl,
+        }
+      }),
+    )
 
-    return new Response(JSON.stringify({ items, total, fetchedAt: new Date().toISOString() }), {
+    return new Response(JSON.stringify({ items, total: items.length, fetchedAt: new Date().toISOString() }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     })
   } catch (e) {

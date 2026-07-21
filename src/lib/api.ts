@@ -50,6 +50,33 @@ export async function fetchNews(query: string, count = 10): Promise<NewsItem[]> 
   return data.items || []
 }
 
+// 신한 리서치 리포트
+export interface ShinhanReport {
+  id: string
+  title: string
+  analyst: string
+  category: string
+  boardName: string
+  company: string
+  date: string
+  pdfUrl: string
+}
+
+export async function fetchShinhanResearch(params: { page?: number; pageSize?: number; boardName?: string; keyword?: string } = {}): Promise<{ items: ShinhanReport[]; total: number }> {
+  const qs = new URLSearchParams()
+  if (params.page) qs.set('page', String(params.page))
+  if (params.pageSize) qs.set('pageSize', String(params.pageSize))
+  if (params.boardName) qs.set('boardName', params.boardName)
+  if (params.keyword) qs.set('keyword', params.keyword)
+  const resp = await fetch(`/api/shinhan-research?${qs}`)
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({ error: '신한 리서치 조회 실패' }))
+    throw new Error(err.error)
+  }
+  const data = await resp.json()
+  return { items: data.items || [], total: data.total || 0 }
+}
+
 // DART 공시 조회
 export async function fetchDart(params: { stockCode?: string; count?: number; type?: string } = {}): Promise<DartItem[]> {
   const qs = new URLSearchParams()

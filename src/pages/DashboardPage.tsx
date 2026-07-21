@@ -5,7 +5,7 @@ import { useGapRatio } from '../store/gapRatio'
 import { useTasks } from '../store/tasks'
 import { daysUntil, dueTone, formatPct, gapTone, GAP_WARNING_THRESHOLD } from '../lib/utils'
 import { useAuth } from '../store/auth'
-import { fetchShinhanResearch } from '../lib/api'
+import { fetchShinhanResearch, fetchStockPrices } from '../lib/api'
 
 export default function DashboardPage() {
   const user = useAuth((s) => s.user)
@@ -13,22 +13,35 @@ export default function DashboardPage() {
   const syncFromReports = useCoverage((s) => s.syncFromReports)
   const gapItems = useGapRatio((s) => s.items)
   const syncTargetPrices = useGapRatio((s) => s.syncTargetPrices)
+  const refreshPrices = useGapRatio((s) => s.refreshPrices)
   const taskItems = useTasks((s) => s.items)
   const [syncStatus, setSyncStatus] = useState('')
 
   // 대시보드 로드 시 신한 리서치 리포트와 자동 동기화
   useEffect(() => {
-    fetchShinhanResearch({ pageSize: 30 })
-      .then(({ items }) => {
+    async function sync() {
+      try {
+        const { items } = await fetchShinhanResearch({ pageSize: 50 })
         const reports = items.filter((r) => r.ticker)
-        const covUpdated = syncFromReports(reports.map((r) => ({ ticker: r.ticker, date: r.date })))
+        const covUpdated = syncFromReports(reports.map((r) => ({ ticker: r.ticker, name: r.company, date: r.date })))
         const gapUpdated = syncTargetPrices(reports.map((r) => ({ ticker: r.ticker, name: r.company, targetPrice: r.targetPrice })))
-        if (covUpdated || gapUpdated) {
-          setSyncStatus(`리포트 동기화: 커버리지 ${covUpdated}건, 목표주가 ${gapUpdated}건 갱신`)
+
+        // 괴리율 종목들의 현재가도 갱신
+        const gapTickers = useGapRatio.getState().items.map((g) => g.ticker).filter(Boolean)
+        if (gapTickers.length > 0) {
+          const prices = await fetchStockPrices(gapTickers)
+          refreshPrices(prices.map((p) => ({ ticker: p.ticker, currentPrice: p.currentPrice })))
         }
-      })
-      .catch(() => { /* 동기화 실패해도 무시 */ })
-  }, [syncFromReports, syncTargetPrices])
+
+        const parts = []
+        if (covUpdated) parts.push(`커버리지 ${covUpdated}건`)
+        if (gapUpdated) parts.push(`목표주가 ${gapUpdated}건`)
+        if (gapTickers.length) parts.push(`현재가 ${gapTickers.length}건 갱신`)
+        if (parts.length) setSyncStatus(`리포트 동기화: ${parts.join(', ')}`)
+      } catch { /* 동기화 실패해도 무시 */ }
+    }
+    sync()
+  }, [syncFromReports, syncTargetPrices, refreshPrices])
 
   const dueSoon = [...coverageItems]
     .map((c) => ({ ...c, days: daysUntil(c.nextDue) }))

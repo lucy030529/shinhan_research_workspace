@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { GapRatioItem } from '../types'
-import { MOCK_GAP_RATIO } from '../data/mock'
 
 interface GapRatioState {
   items: GapRatioItem[]
@@ -25,7 +24,7 @@ function calcGap(target: number, current: number) {
 export const useGapRatio = create<GapRatioState>()(
   persist(
     (set) => ({
-      items: MOCK_GAP_RATIO,
+      items: [],
       lastRefreshed: null,
 
       upsert: (data) =>
@@ -66,19 +65,36 @@ export const useGapRatio = create<GapRatioState>()(
         let updated = 0
         set((s) => {
           const now = new Date().toISOString()
-          return {
-            items: s.items.map((g) => {
-              const report = reports.find((r) => r.ticker === g.ticker && r.targetPrice > 0)
-              if (!report || report.targetPrice === g.targetPrice) return g
-              updated++
-              return {
-                ...g,
-                targetPrice: report.targetPrice,
-                gapRatio: calcGap(report.targetPrice, g.currentPrice),
-                updatedAt: now,
-              }
-            }),
+          const existingTickers = new Set(s.items.map((g) => g.ticker))
+          // 기존 항목 갱신
+          const updatedItems = s.items.map((g) => {
+            const report = reports.find((r) => r.ticker === g.ticker && r.targetPrice > 0)
+            if (!report || report.targetPrice === g.targetPrice) return g
+            updated++
+            return {
+              ...g,
+              targetPrice: report.targetPrice,
+              gapRatio: calcGap(report.targetPrice, g.currentPrice),
+              updatedAt: now,
+            }
+          })
+          // 새 종목 추가 (목표주가가 있는 경우만)
+          const newItems: GapRatioItem[] = []
+          for (const r of reports) {
+            if (!r.ticker || existingTickers.has(r.ticker) || r.targetPrice <= 0) continue
+            existingTickers.add(r.ticker)
+            updated++
+            newItems.push({
+              id: 'g' + (++seq),
+              ticker: r.ticker,
+              name: r.name,
+              targetPrice: r.targetPrice,
+              currentPrice: 0,
+              gapRatio: 0,
+              updatedAt: now,
+            })
           }
+          return { items: [...updatedItems, ...newItems] }
         })
         return updated
       },
@@ -102,6 +118,6 @@ export const useGapRatio = create<GapRatioState>()(
           }
         }),
     }),
-    { name: 'shinhan-gap-ratio' },
+    { name: 'shinhan-gap-ratio', version: 2 },
   ),
 )

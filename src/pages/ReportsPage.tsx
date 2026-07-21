@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { Badge, Button, Card, CardHeader, PageHeader } from '../components/ui'
 import { REPORT_TYPES, type ReportType } from '../data/reportPrompts'
-import { generateReport, buildPrompt, getStoredApiKey, setStoredApiKey } from '../lib/generateReport'
+import { generateReport, buildPrompt } from '../lib/generateReport'
 import { extractText, formatFileSize } from '../lib/fileExtract'
 import { renderMarkdown } from '../lib/renderMarkdown'
 import { exportDocx } from '../lib/exportDocx'
@@ -24,19 +24,10 @@ export default function ReportsPage() {
   // 프롬프트 보기
   const [showPrompt, setShowPrompt] = useState(false)
 
-  // API 키 설정
-  const [showApiKey, setShowApiKey] = useState(false)
-  const [apiKeyInput, setApiKeyInput] = useState('')
-  const [apiKeySaved, setApiKeySaved] = useState(false)
-
   const fileInputRef = useRef<HTMLInputElement>(null)
   const outputRef = useRef<HTMLDivElement>(null)
 
   const typeInfo = REPORT_TYPES.find((t) => t.value === reportType)!
-
-  useEffect(() => {
-    setApiKeyInput(getStoredApiKey())
-  }, [])
 
   function addFiles(newFiles: FileList | null) {
     if (!newFiles) return
@@ -49,12 +40,6 @@ export default function ReportsPage() {
 
   function removeFile(idx: number) {
     setFiles((prev) => prev.filter((_, i) => i !== idx))
-  }
-
-  function handleSaveApiKey() {
-    setStoredApiKey(apiKeyInput.trim())
-    setApiKeySaved(true)
-    setTimeout(() => setApiKeySaved(false), 2000)
   }
 
   async function handleGenerate() {
@@ -135,46 +120,6 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
         {/* 좌측: 입력 패널 */}
         <div className="lg:col-span-2 space-y-4">
-          {/* API 키 설정 */}
-          <Card>
-            <div
-              className="flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
-              onClick={() => setShowApiKey(!showApiKey)}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-ink-faint">API 설정</span>
-                {getStoredApiKey() ? (
-                  <span className="inline-block w-2 h-2 rounded-full bg-green-500" title="API 키 설정됨" />
-                ) : (
-                  <span className="inline-block w-2 h-2 rounded-full bg-red-400" title="API 키 미설정" />
-                )}
-              </div>
-              <span className="text-xs text-ink-faint">{showApiKey ? '접기' : '펼치기'}</span>
-            </div>
-            {showApiKey && (
-              <div className="px-5 pb-4 space-y-2 border-t border-slate-100">
-                <p className="text-xs text-ink-faint pt-3">
-                  Anthropic API 키를 입력하세요. 브라우저 로컬에만 저장됩니다.
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="password"
-                    value={apiKeyInput}
-                    onChange={(e) => setApiKeyInput(e.target.value)}
-                    placeholder="sk-ant-..."
-                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-                  />
-                  <button
-                    className="rounded-lg bg-brand-600 px-4 py-2 text-xs font-semibold text-white hover:bg-brand-700 transition-colors"
-                    onClick={handleSaveApiKey}
-                  >
-                    {apiKeySaved ? '저장됨' : '저장'}
-                  </button>
-                </div>
-              </div>
-            )}
-          </Card>
-
           {/* 기본 정보 */}
           <Card>
             <CardHeader title="1. 기본 정보" />
@@ -341,11 +286,6 @@ export default function ReportsPage() {
                     좌측에 자료를 입력하고<br />
                     <strong className="text-ink">{typeInfo.buttonLabel}</strong> 버튼을 눌러주세요
                   </p>
-                  {!getStoredApiKey() && (
-                    <p className="text-xs text-red-400 mt-3">
-                      API 키가 설정되지 않았습니다. 좌측 상단 API 설정에서 키를 입력해주세요.
-                    </p>
-                  )}
                 </div>
               )}
               {status === 'generating' && !rawMarkdown && (

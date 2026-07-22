@@ -159,7 +159,8 @@ export default function CalendarPage() {
   const [newIsDepartment, setNewIsDepartment] = useState(false)
   const [newParticipants, setNewParticipants] = useState<string[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [profiles, setProfiles] = useState<Record<string, { name: string; avatar?: string; title?: string }>>({})
+  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null)
+  const [profiles, setProfiles] = useState<Record<string, { name: string; avatar?: string; title?: string; department?: string }>>({})
 
   useEffect(() => { fetchProfiles().then(setProfiles) }, [])
   useEffect(() => { if (!loaded) fetchEvents() }, [loaded, fetchEvents])
@@ -438,12 +439,18 @@ export default function CalendarPage() {
                 {selectedEvents.map((ev) => {
                   const ep = ev.analyst ? profiles[ev.analyst] : undefined
                   return (
-                  <div key={ev.id} className="flex items-start justify-between gap-2 px-4 py-2.5">
-                    <div className="flex items-start gap-2">
+                  <div
+                    key={ev.id}
+                    className="flex items-start justify-between gap-2 px-4 py-2.5 cursor-pointer hover:bg-neutral-100 transition-colors"
+                    onClick={() => setDetailEvent(ev)}
+                  >
+                    <div className="flex items-start gap-2.5">
                       {ep?.avatar?.startsWith('data:') ? (
-                        <img src={ep.avatar} alt="" className="mt-0.5 h-5 w-5 rounded-full object-cover ring-1 ring-neutral-200" />
+                        <img src={ep.avatar} alt="" className="mt-0.5 h-6 w-6 rounded-full object-cover ring-1 ring-neutral-200" />
                       ) : (
-                        <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${COLOR_CLASSES[ev.color]}`} />
+                        <div className={`mt-0.5 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white ${COLOR_CLASSES[ev.color]}`}>
+                          {(ev.analyst || '?')[0]}
+                        </div>
                       )}
                       <div>
                         <p className="text-sm text-ink">
@@ -451,17 +458,15 @@ export default function CalendarPage() {
                           {ev.title}
                         </p>
                         <p className="text-[10px] text-neutral-500">
-                          {COLOR_LABEL[ev.color]}
-                          {ev.analyst && ` · ${ev.analyst}`}
+                          {ev.analyst && <span className="font-medium text-neutral-600">{ev.analyst}</span>}
+                          {ev.analyst && ' · '}{COLOR_LABEL[ev.color]}
                           {ev.time && ` · ${ev.time}`}
-                          {ev.endDate && ev.endDate !== ev.date && ` · ~${ev.endDate}`}
-                          {ev.participants && ev.participants.length > 0 && ` · 참여: ${ev.participants.join(', ')}`}
                         </p>
                       </div>
                     </div>
-                    {(isAdmin || ev.createdBy === user?.name || ev.analyst === user?.name) && (
-                      <button onClick={() => remove(ev.id)} className="shrink-0 text-[10px] text-danger-600 hover:underline">삭제</button>
-                    )}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-1 text-neutral-400">
+                      <path d="M9 18l6-6-6-6" />
+                    </svg>
                   </div>
                   )
                 })}
@@ -477,9 +482,21 @@ export default function CalendarPage() {
               {upcomingEvents.length === 0 && (
                 <p className="px-4 py-6 text-center text-xs text-neutral-500">등록된 일정이 없습니다.</p>
               )}
-              {upcomingEvents.map((ev) => (
-                <div key={ev.id} className="flex items-center gap-2 px-4 py-2.5">
-                  <span className={`inline-block h-2 w-2 shrink-0 rounded-full ${COLOR_CLASSES[ev.color]}`} />
+              {upcomingEvents.map((ev) => {
+                const ep = ev.analyst ? profiles[ev.analyst] : undefined
+                return (
+                <div
+                  key={ev.id}
+                  className="flex items-center gap-2.5 px-4 py-2.5 cursor-pointer hover:bg-neutral-100 transition-colors"
+                  onClick={() => setDetailEvent(ev)}
+                >
+                  {ep?.avatar?.startsWith('data:') ? (
+                    <img src={ep.avatar} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-neutral-200" />
+                  ) : (
+                    <div className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white ${COLOR_CLASSES[ev.color]}`}>
+                      {(ev.analyst || '?')[0]}
+                    </div>
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm text-ink">
                       {ev.isDepartment && <span className="mr-1 text-brand-500 font-semibold">[공통]</span>}
@@ -490,7 +507,8 @@ export default function CalendarPage() {
                     </p>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </Card>
 
@@ -609,6 +627,110 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
+
+      {/* 일정 상세 모달 */}
+      {detailEvent && (() => {
+        const ev = detailEvent
+        const ep = ev.analyst ? profiles[ev.analyst] : undefined
+        const canEdit = isAdmin || ev.createdBy === user?.name || ev.analyst === user?.name
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setDetailEvent(null)}>
+            <div className="w-full max-w-sm rounded-lg bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+              {/* 헤더 */}
+              <div className={`rounded-t-lg px-5 py-4 ${COLOR_BG[ev.color]} border-b`}>
+                <div className="flex items-center justify-between">
+                  <Badge tone="slate">{COLOR_LABEL[ev.color]}</Badge>
+                  <button onClick={() => setDetailEvent(null)} className="text-neutral-500 hover:text-ink">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                  </button>
+                </div>
+                <h3 className="mt-2 text-base font-bold text-ink">
+                  {ev.isDepartment && <span className="mr-1 text-brand-500">[공통]</span>}
+                  {ev.title}
+                </h3>
+              </div>
+
+              <div className="px-5 py-4 space-y-4">
+                {/* 담당자 */}
+                {ev.analyst && (
+                  <div className="flex items-center gap-3">
+                    {ep?.avatar?.startsWith('data:') ? (
+                      <img src={ep.avatar} alt="" className="h-9 w-9 rounded-full object-cover ring-2 ring-neutral-200" />
+                    ) : (
+                      <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white ${COLOR_CLASSES[ev.color]}`}>
+                        {ev.analyst[0]}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm font-semibold text-ink">{ev.analyst}</p>
+                      {ep?.title && <p className="text-xs text-neutral-500">{ep.title}</p>}
+                      {ep?.department && <p className="text-xs text-neutral-400">{ep.department}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* 일시 */}
+                <div className="flex items-start gap-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 text-neutral-400">
+                    <rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" />
+                  </svg>
+                  <div className="text-sm text-ink">
+                    <p>{formatDateRange(ev)}</p>
+                    {ev.time && <p className="text-xs text-neutral-500">{ev.time}</p>}
+                  </div>
+                </div>
+
+                {/* 참여자 */}
+                {ev.participants && ev.participants.length > 0 && (
+                  <div>
+                    <p className="mb-2 text-xs font-medium text-neutral-500">공동 참여자</p>
+                    <div className="flex flex-wrap gap-2">
+                      {ev.participants.map((name) => {
+                        const pp = profiles[name]
+                        return (
+                          <div key={name} className="flex items-center gap-1.5 rounded-full border border-neutral-200 bg-neutral-100 px-2.5 py-1">
+                            {pp?.avatar?.startsWith('data:') ? (
+                              <img src={pp.avatar} alt="" className="h-4 w-4 rounded-full object-cover" />
+                            ) : (
+                              <div className="flex h-4 w-4 items-center justify-center rounded-full bg-neutral-400 text-[8px] font-bold text-white">
+                                {name[0]}
+                              </div>
+                            )}
+                            <span className="text-xs text-ink">{name}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* 등록자 */}
+                {ev.createdBy && (
+                  <p className="text-xs text-neutral-400">등록: {ev.createdBy}</p>
+                )}
+              </div>
+
+              {/* 하단 버튼 */}
+              {canEdit && (
+                <div className="flex justify-end gap-2 border-t border-neutral-150 px-5 py-3">
+                  <button
+                    onClick={() => { openEditForm(ev); setDetailEvent(null) }}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-brand-500 hover:bg-brand-50"
+                  >
+                    수정
+                  </button>
+                  <button
+                    onClick={() => { remove(ev.id); setDetailEvent(null) }}
+                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-danger-600 hover:bg-danger-100"
+                  >
+                    삭제
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }

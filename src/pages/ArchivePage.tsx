@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { Badge, Button, Card, CardHeader, PageHeader } from '../components/ui'
 import { CATEGORY_LABELS, type ArchiveItem } from '../data/archive'
 import { useCoverage } from '../store/coverage'
-import { fetchDart, fetchNews, fetchShinhanResearch, type DartItem, type NewsItem, type ShinhanReport } from '../lib/api'
+import { fetchDart, fetchShinhanResearch, type DartItem, type ShinhanReport } from '../lib/api'
 
-type Category = ArchiveItem['category'] | 'all'
+type Category = 'all' | 'report' | 'dart'
 
 const TONE_MAP: Record<ArchiveItem['category'], 'red' | 'brand' | 'green' | 'amber'> = {
   dart: 'red',
@@ -13,19 +13,19 @@ const TONE_MAP: Record<ArchiveItem['category'], 'red' | 'brand' | 'green' | 'amb
   nps: 'amber',
 }
 
+const PAGE_SIZES = [15, 30, 60] as const
+
 export default function ArchivePage() {
   const [tab, setTab] = useState<Category>('all')
   const [search, setSearch] = useState('')
+  const [pageSize, setPageSize] = useState<number>(30)
   const coverageItems = useCoverage((s) => s.items)
 
-  // 실시간 데이터
   const [dartItems, setDartItems] = useState<DartItem[]>([])
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([])
   const [shinhanReports, setShinhanReports] = useState<ShinhanReport[]>([])
   const [loading, setLoading] = useState(false)
   const [lastFetched, setLastFetched] = useState<string | null>(null)
 
-  // DART + 뉴스 + 신한 리서치를 합쳐서 ArchiveItem 형태로 변환
   const liveItems: ArchiveItem[] = [
     ...shinhanReports.map((r) => ({
       id: `shinhan-${r.id}`,
@@ -46,14 +46,6 @@ export default function ArchivePage() {
       companyName: d.companyName,
       url: d.url,
     })),
-    ...newsItems.map((n, i) => ({
-      id: `news-${i}`,
-      category: 'nps' as const,
-      title: n.title,
-      source: n.source,
-      date: new Date(n.pubDate).toISOString().slice(0, 10),
-      url: n.link,
-    })),
   ]
 
   const allItems = liveItems
@@ -71,41 +63,22 @@ export default function ArchivePage() {
       )
     })
     .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, pageSize)
 
-  const counts: Record<Category, number> = {
+  const counts = {
     all: allItems.length,
-    dart: allItems.filter((a) => a.category === 'dart').length,
-    ir: allItems.filter((a) => a.category === 'ir').length,
     report: allItems.filter((a) => a.category === 'report').length,
-    nps: allItems.filter((a) => a.category === 'nps').length,
+    dart: allItems.filter((a) => a.category === 'dart').length,
   }
 
   const loadData = useCallback(async () => {
     setLoading(true)
     try {
-      // 커버리지 기업명을 기반으로 뉴스 검색 쿼리 생성
-      const companyNames = [...new Set(coverageItems.map((c) => c.name))].slice(0, 10)
-      const newsQuery = companyNames.length > 0
-        ? companyNames.slice(0, 5).join(' OR ') + ' 실적'
-        : '증권 실적 공시'
-
-      const [dart, news, shinhan] = await Promise.allSettled([
-        fetchDart({ count: 30 }),
-        fetchNews(newsQuery, 30),
-        fetchShinhanResearch({ pageSize: 30 }),
+      const [dart, shinhan] = await Promise.allSettled([
+        fetchDart({ count: 60 }),
+        fetchShinhanResearch({ pageSize: 60 }),
       ])
       if (dart.status === 'fulfilled') setDartItems(dart.value)
-      if (news.status === 'fulfilled') {
-        // 커버리지 기업 관련 뉴스 우선 필터링
-        const coverageNames = new Set(coverageItems.map((c) => c.name))
-        const items = news.value
-        const relevant = items.filter((n: NewsItem) =>
-          [...coverageNames].some((name) => n.title.includes(name) || n.description.includes(name)),
-        )
-        // 관련 뉴스 우선 + 나머지 뉴스
-        const rest = items.filter((n: NewsItem) => !relevant.includes(n))
-        setNewsItems([...relevant, ...rest])
-      }
       if (shinhan.status === 'fulfilled') setShinhanReports(shinhan.value.items)
       setLastFetched(new Date().toLocaleString('ko-KR'))
     } catch {
@@ -113,7 +86,7 @@ export default function ArchivePage() {
     } finally {
       setLoading(false)
     }
-  }, [coverageItems])
+  }, [])
 
   useEffect(() => {
     loadData()
@@ -123,14 +96,14 @@ export default function ArchivePage() {
     <div>
       <PageHeader
         title="자료실 · 데이터 수집"
-        description="DART 공시, 뉴스를 실시간으로 수집합니다."
+        description="DART 공시, 신한 리서치 리포트를 실시간으로 수집합니다."
       />
 
-      {/* 탭 + 검색 */}
+      {/* 탭 + 검색 + 페이지사이즈 */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="flex gap-1 rounded-lg border border-neutral-200 bg-white p-1">
-          {(['all', 'report', 'dart', 'nps'] as Category[]).map((c) => {
-            const labels: Record<string, string> = { all: '전체', report: '신한 리서치', dart: 'DART 공시', nps: '뉴스' }
+          {(['all', 'report', 'dart'] as Category[]).map((c) => {
+            const labels: Record<string, string> = { all: '전체', report: '신한 리서치', dart: 'DART 공시' }
             return (
               <button
                 key={c}
@@ -151,6 +124,19 @@ export default function ArchivePage() {
           placeholder="종목명, 종목코드, 제목 검색..."
           className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
+        <div className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white p-1">
+          {PAGE_SIZES.map((s) => (
+            <button
+              key={s}
+              onClick={() => setPageSize(s)}
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                pageSize === s ? 'bg-brand-600 text-white' : 'text-neutral-600 hover:bg-neutral-100'
+              }`}
+            >
+              {s}개
+            </button>
+          ))}
+        </div>
         <Button variant="secondary" onClick={loadData} disabled={loading}>
           {loading ? '조회 중...' : '새로고침'}
         </Button>
@@ -164,12 +150,12 @@ export default function ArchivePage() {
         <div className="divide-y divide-neutral-150">
           {filtered.map((item) => (
             <div key={item.id} className="flex items-center justify-between px-5 py-3.5">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 <Badge tone={TONE_MAP[item.category]}>
-                  {item.category === 'report' ? '신한 리서치' : item.category === 'nps' ? '뉴스' : CATEGORY_LABELS[item.category]}
+                  {item.category === 'report' ? '신한 리서치' : CATEGORY_LABELS[item.category]}
                 </Badge>
-                <div>
-                  <p className="text-sm font-medium text-ink">{item.title}</p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-ink">{item.title}</p>
                   <p className="text-xs text-neutral-500">
                     {item.companyName && `${item.companyName} (${item.ticker}) · `}
                     {item.source} · {item.date}
@@ -181,7 +167,7 @@ export default function ArchivePage() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-brand-500 hover:underline"
+                  className="shrink-0 ml-3 text-xs text-brand-500 hover:underline"
                 >
                   {item.id.startsWith('shinhan-') ? '리포트 보기' : '원문 보기'}
                 </a>
@@ -203,7 +189,7 @@ export default function ArchivePage() {
       </Card>
 
       <p className="mt-4 text-xs text-neutral-500">
-        * 신한투자증권 리서치, DART OpenAPI, 네이버 뉴스 API 실시간 연동 · 커버리지 기업 기반 뉴스 우선 수집
+        * 신한투자증권 리서치, DART OpenAPI 실시간 연동
       </p>
     </div>
   )

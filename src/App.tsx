@@ -1,7 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import AppLayout from './components/layout/AppLayout'
-import { RequireAuth, RequireGate } from './routes/guards'
-import GatePage from './pages/GatePage'
+import { RequireAuth } from './routes/guards'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CoveragePage from './pages/CoveragePage'
@@ -18,23 +17,8 @@ import AccountPage from './pages/AccountPage'
 export default function App() {
   return (
     <Routes>
-      <Route path="/gate" element={<GatePage />} />
-      <Route
-        path="/login"
-        element={
-          <RequireGate>
-            <LoginPage />
-          </RequireGate>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <RequireGate>
-            <RegisterPage />
-          </RequireGate>
-        }
-      />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route
         element={
           <RequireAuth>

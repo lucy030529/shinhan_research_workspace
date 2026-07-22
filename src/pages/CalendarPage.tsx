@@ -256,11 +256,15 @@ export default function CalendarPage() {
     setShowForm(true)
   }
 
-  const selectedEvents = selectedDate ? events.filter((ev) => eventOnDate(ev, selectedDate)) : []
+  const selectedEvents = selectedDate
+    ? events
+        .filter((ev) => eventOnDate(ev, selectedDate))
+        .sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'))
+    : []
 
   const upcomingEvents = events
     .filter((e) => (e.endDate || e.date) >= todayStr)
-    .sort((a, b) => a.date.localeCompare(b.date))
+    .sort((a, b) => a.date.localeCompare(b.date) || (a.time || '99:99').localeCompare(b.time || '99:99'))
     .slice(0, 10)
 
   return (
@@ -348,7 +352,7 @@ export default function CalendarPage() {
                       const isToday = cell.date === todayStr
                       const isSelected = cell.date === selectedDate
                       const dayOfWeek = colIdx
-                      const singleEvents = events.filter((ev) => !isMultiDay(ev) && ev.date === cell.date)
+                      const singleEvents = events.filter((ev) => !isMultiDay(ev) && ev.date === cell.date).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'))
 
                       return (
                         <div

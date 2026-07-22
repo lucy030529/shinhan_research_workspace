@@ -4,7 +4,7 @@ import { Badge } from '../components/ui'
 import { useCoverage } from '../store/coverage'
 import { useGapRatio } from '../store/gapRatio'
 import { fetchProfiles } from '../store/auth'
-import { daysUntil, dueTone, formatPct, formatWon, gapTone } from '../lib/utils'
+import { daysUntil, dueTone, formatPct, gapTone } from '../lib/utils'
 import analystCoverageData from '../data/analyst-coverage.json'
 
 const ANALYSTS = analystCoverageData.analysts as string[]
@@ -14,8 +14,6 @@ const OPINION_TONE: Record<string, 'brand' | 'green' | 'amber' | 'orange' | 'red
   'TRADING BUY': 'green',
   '중립': 'slate',
 }
-
-const SPRING_SOFT = { type: 'spring' as const, stiffness: 300, damping: 30 }
 
 interface CoverageEntry {
   ticker: string
@@ -37,7 +35,6 @@ export default function AnalystPage() {
   const [selectedAnalyst, setSelectedAnalyst] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<Record<string, { name: string; avatar?: string; title?: string; department?: string }>>({})
   const [searchQuery, setSearchQuery] = useState('')
-  const [expandedTicker, setExpandedTicker] = useState<string | null>(null)
 
   useEffect(() => { fetchProfiles().then(setProfiles) }, [])
 
@@ -86,75 +83,65 @@ export default function AnalystPage() {
 
   return (
     <div>
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="text-xl font-bold text-ink">애널리스트 현황</h1>
         <p className="mt-1 text-sm text-neutral-500">애널리스트를 선택하면 커버리지 종목 상세를 확인할 수 있습니다.</p>
       </div>
 
-      {/* ───────── 애널리스트 카드 그리드 ───────── */}
+      {/* 애널리스트 카드 그리드 */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-        {ANALYSTS.map((a, i) => {
+        {ANALYSTS.map((a) => {
           const p = profiles[a]
           const s = analystStats[a]
           const isActive = a === selectedAnalyst
           return (
-            <motion.div
+            <button
               key={a}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, delay: i * 0.03 }}
+              onClick={() => { setSelectedAnalyst(isActive ? null : a); setSearchQuery('') }}
+              className={`w-full rounded-xl border p-4 text-left transition-all ${
+                isActive
+                  ? 'border-brand-500 bg-brand-50 shadow-md shadow-brand-500/10'
+                  : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm'
+              }`}
             >
-              <button
-                onClick={() => { setSelectedAnalyst(isActive ? null : a); setSearchQuery(''); setExpandedTicker(null) }}
-                className={`w-full rounded-xl border p-4 text-left transition-all ${
-                  isActive
-                    ? 'border-brand-500 bg-brand-50 shadow-md shadow-brand-500/10'
-                    : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  {p?.avatar?.startsWith('data:') ? (
-                    <img src={p.avatar} alt="" className={`h-10 w-10 rounded-full object-cover ring-2 ${isActive ? 'ring-brand-300' : 'ring-neutral-200'}`} />
-                  ) : (
-                    <div className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white ${isActive ? 'bg-brand-500' : 'bg-neutral-400'}`}>
-                      {a[0]}
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className={`font-semibold ${isActive ? 'text-brand-700' : 'text-ink'}`}>{a}</p>
-                    {p?.title && <p className="truncate text-[11px] text-neutral-400">{p.title}</p>}
+              <div className="flex items-center gap-3">
+                {p?.avatar?.startsWith('data:') ? (
+                  <img src={p.avatar} alt="" className={`h-10 w-10 rounded-full object-cover ring-2 ${isActive ? 'ring-brand-300' : 'ring-neutral-200'}`} />
+                ) : (
+                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${isActive ? 'bg-brand-500' : 'bg-neutral-400'}`}>
+                    {a[0]}
                   </div>
-                </div>
-
-                <div className="mt-3 grid grid-cols-3 gap-1 text-center">
-                  <div>
-                    <p className="text-[10px] text-neutral-400">종목</p>
-                    <p className="text-sm font-bold tabular-nums text-ink">{s?.count || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-neutral-400">매수</p>
-                    <p className="text-sm font-bold tabular-nums text-brand-500">{s?.buyCount || 0}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-neutral-400">괴리율</p>
-                    <p className={`text-sm font-bold tabular-nums ${s?.avgGap ? (s.avgGap > 0 ? 'text-red-500' : 'text-blue-500') : 'text-neutral-300'}`}>
-                      {s?.avgGap ? `${s.avgGap > 0 ? '+' : ''}${s.avgGap}%` : '-'}
-                    </p>
-                  </div>
-                </div>
-
-                {s?.latestDate && (
-                  <p className="mt-2 truncate text-[10px] text-neutral-400">
-                    최근 {s.latestDate}
-                  </p>
                 )}
-              </button>
-            </motion.div>
+                <div className="min-w-0">
+                  <p className={`font-semibold ${isActive ? 'text-brand-700' : 'text-ink'}`}>{a}</p>
+                  {p?.title && <p className="truncate text-[11px] text-neutral-400">{p.title}</p>}
+                </div>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-1 text-center">
+                <div>
+                  <p className="text-[10px] text-neutral-400">종목</p>
+                  <p className="text-sm font-bold tabular-nums text-ink">{s?.count || 0}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-neutral-400">매수</p>
+                  <p className="text-sm font-bold tabular-nums text-brand-500">{s?.buyCount || 0}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-neutral-400">괴리율</p>
+                  <p className={`text-sm font-bold tabular-nums ${s?.avgGap ? (s.avgGap > 0 ? 'text-red-500' : 'text-blue-500') : 'text-neutral-300'}`}>
+                    {s?.avgGap ? `${s.avgGap > 0 ? '+' : ''}${s.avgGap}%` : '-'}
+                  </p>
+                </div>
+              </div>
+              {s?.latestDate && (
+                <p className="mt-2 truncate text-[10px] text-neutral-400">최근 {s.latestDate}</p>
+              )}
+            </button>
           )
         })}
       </div>
 
-      {/* ───────── 선택된 애널리스트 종목 패널 ───────── */}
+      {/* 선택된 애널리스트 종목 테이블 */}
       <AnimatePresence>
         {selectedAnalyst && (
           <motion.div
@@ -162,11 +149,10 @@ export default function AnalystPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={SPRING_SOFT}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="overflow-hidden"
           >
             <div className="mt-6">
-              {/* 패널 헤더 */}
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {(() => {
@@ -192,107 +178,110 @@ export default function AnalystPage() {
                 </div>
               </div>
 
-              {/* 종목 카드 */}
-              <div className="space-y-2">
-                {analystEntries.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-neutral-200 py-12 text-center text-sm text-neutral-400">
-                    {searchQuery ? '검색 결과가 없습니다.' : '커버리지 종목이 없습니다.'}
-                  </div>
-                )}
-
-                {analystEntries.map((e, i) => {
-                  const daysLeft = e.nextDue ? daysUntil(e.nextDue) : 999
-                  const dTone = dueTone(daysLeft)
-                  const gTone = e.gapRatio !== 0 ? gapTone(e.gapRatio) : undefined
-                  const isExpanded = expandedTicker === e.ticker
-
-                  return (
-                    <motion.div
-                      key={e.ticker}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2, delay: Math.min(i * 0.03, 0.3) }}
-                    >
-                      <div
-                        className={`cursor-pointer rounded-xl border bg-white transition-all ${
-                          isExpanded ? 'border-brand-200 shadow-md shadow-brand-500/5' : 'border-neutral-200/80 hover:border-neutral-300 hover:shadow-sm'
-                        }`}
-                        onClick={() => setExpandedTicker(isExpanded ? null : e.ticker)}
-                      >
-                        <div className="flex items-center gap-4 px-5 py-3.5">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-ink">{e.company}</span>
-                              <span className="font-mono text-[11px] text-neutral-400">{e.ticker}</span>
-                            </div>
-                            <p className="mt-0.5 truncate text-xs text-neutral-400" title={e.title}>{e.title}</p>
-                          </div>
-
-                          <div className="hidden shrink-0 sm:block">
-                            {e.opinion ? <Badge tone={OPINION_TONE[e.opinion] ?? 'slate'}>{e.opinion}</Badge> : <span className="text-xs text-neutral-300">-</span>}
-                          </div>
-
-                          <div className="hidden w-24 shrink-0 text-right md:block">
-                            <p className="text-[10px] text-neutral-400">목표</p>
-                            <p className="font-semibold tabular-nums text-ink">{e.targetPrice > 0 ? e.targetPrice.toLocaleString('ko-KR') : '-'}</p>
-                          </div>
-
-                          <div className="hidden w-24 shrink-0 text-right lg:block">
-                            <p className="text-[10px] text-neutral-400">현재가</p>
-                            <p className="tabular-nums text-neutral-600">{e.currentPrice > 0 ? e.currentPrice.toLocaleString('ko-KR') : '-'}</p>
-                          </div>
-
-                          <div className="w-16 shrink-0 text-right">
-                            {gTone ? <Badge tone={gTone}>{formatPct(e.gapRatio)}</Badge> : <span className="text-xs text-neutral-300">-</span>}
-                          </div>
-
-                          <div className="hidden w-20 shrink-0 text-center lg:block">
-                            <p className="text-xs tabular-nums text-neutral-500">{e.lastUpdated.slice(5)}</p>
-                          </div>
-
-                          <div className="hidden w-16 shrink-0 text-center sm:block">
-                            {e.nextDue ? (
-                              <Badge tone={dTone}>{daysLeft <= 0 ? `+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</Badge>
-                            ) : <span className="text-xs text-neutral-300">-</span>}
-                          </div>
-
-                          <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }} className="shrink-0 text-neutral-400">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6" /></svg>
-                          </motion.div>
-                        </div>
-
-                        <AnimatePresence>
-                          {isExpanded && (
-                            <motion.div
-                              initial={{ height: 0, opacity: 0 }}
-                              animate={{ height: 'auto', opacity: 1 }}
-                              exit={{ height: 0, opacity: 0 }}
-                              transition={SPRING_SOFT}
-                              className="overflow-hidden"
-                            >
-                              <div className="border-t border-neutral-100 bg-neutral-50/50 px-5 py-4">
-                                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
-                                  <Detail label="투자의견" value={e.opinion || '-'} />
-                                  <Detail label="목표주가" value={e.targetPrice > 0 ? formatWon(e.targetPrice) : '-'} />
-                                  <Detail label="현재가" value={e.currentPrice > 0 ? formatWon(e.currentPrice) : '-'} />
-                                  <Detail label="괴리율" value={e.gapRatio !== 0 ? formatPct(e.gapRatio) : '-'} highlight={gTone} />
-                                  <Detail label="최종 발간일" value={e.lastUpdated} />
-                                  <Detail label="커버리지 기한" value={e.nextDue ? (daysLeft <= 0 ? `${e.nextDue} (${Math.abs(daysLeft)}일 초과)` : `${e.nextDue} (D-${daysLeft})`) : '-'} highlight={dTone === 'red' ? 'red' : undefined} />
-                                </div>
+              {/* 데스크톱: 테이블 / 모바일: 카드 */}
+              {analystEntries.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-neutral-200 py-12 text-center text-sm text-neutral-400">
+                  {searchQuery ? '검색 결과가 없습니다.' : '커버리지 종목이 없습니다.'}
+                </div>
+              ) : (
+                <>
+                  {/* 데스크톱 테이블 */}
+                  <div className="hidden overflow-x-auto rounded-xl border border-neutral-200 bg-white md:block">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-neutral-150 bg-neutral-50/60">
+                          <th className="px-4 py-2.5 text-left text-xs font-semibold text-neutral-500">종목명</th>
+                          <th className="px-3 py-2.5 text-center text-xs font-semibold text-neutral-500">의견</th>
+                          <th className="px-3 py-2.5 text-right text-xs font-semibold text-neutral-500">목표주가</th>
+                          <th className="px-3 py-2.5 text-right text-xs font-semibold text-neutral-500">현재가</th>
+                          <th className="px-3 py-2.5 text-right text-xs font-semibold text-neutral-500">괴리율</th>
+                          <th className="px-3 py-2.5 text-left text-xs font-semibold text-neutral-500">최종 리포트</th>
+                          <th className="px-3 py-2.5 text-center text-xs font-semibold text-neutral-500">발간일</th>
+                          <th className="px-3 py-2.5 text-center text-xs font-semibold text-neutral-500">기한</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-neutral-100">
+                        {analystEntries.map((e) => {
+                          const daysLeft = e.nextDue ? daysUntil(e.nextDue) : 999
+                          const dTone = dueTone(daysLeft)
+                          const gTone = e.gapRatio !== 0 ? gapTone(e.gapRatio) : undefined
+                          return (
+                            <tr key={e.ticker} className="transition-colors hover:bg-neutral-50">
+                              <td className="px-4 py-2.5">
+                                <span className="font-medium text-ink">{e.company}</span>
+                                <span className="ml-1.5 font-mono text-[11px] text-neutral-400">{e.ticker}</span>
                                 {e.analystFull !== e.analyst && (
-                                  <p className="mt-3 text-[11px] text-neutral-400">공동 집필: {e.analystFull}</p>
+                                  <span className="ml-1.5 text-[10px] text-neutral-400">({e.analystFull})</span>
                                 )}
-                                <p className="mt-2 text-xs text-neutral-500">최종 리포트: <span className="font-medium text-neutral-700">{e.title}</span></p>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                    </motion.div>
-                  )
-                })}
-              </div>
+                              </td>
+                              <td className="px-3 py-2.5 text-center">
+                                {e.opinion ? <Badge tone={OPINION_TONE[e.opinion] ?? 'slate'}>{e.opinion}</Badge> : <span className="text-neutral-300">-</span>}
+                              </td>
+                              <td className="px-3 py-2.5 text-right font-medium tabular-nums text-ink">
+                                {e.targetPrice > 0 ? e.targetPrice.toLocaleString('ko-KR') : '-'}
+                              </td>
+                              <td className="px-3 py-2.5 text-right tabular-nums text-neutral-600">
+                                {e.currentPrice > 0 ? e.currentPrice.toLocaleString('ko-KR') : '-'}
+                              </td>
+                              <td className="px-3 py-2.5 text-right">
+                                {gTone ? <Badge tone={gTone}>{formatPct(e.gapRatio)}</Badge> : <span className="text-neutral-300">-</span>}
+                              </td>
+                              <td className="max-w-[180px] px-3 py-2.5">
+                                <p className="truncate text-xs text-neutral-500" title={e.title}>{e.title}</p>
+                              </td>
+                              <td className="px-3 py-2.5 text-center text-xs tabular-nums text-neutral-500">{e.lastUpdated}</td>
+                              <td className="px-3 py-2.5 text-center">
+                                {e.nextDue ? (
+                                  <Badge tone={dTone}>{daysLeft <= 0 ? `+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</Badge>
+                                ) : <span className="text-neutral-300">-</span>}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* 모바일 카드 */}
+                  <div className="space-y-2 md:hidden">
+                    {analystEntries.map((e) => {
+                      const daysLeft = e.nextDue ? daysUntil(e.nextDue) : 999
+                      const dTone = dueTone(daysLeft)
+                      const gTone = e.gapRatio !== 0 ? gapTone(e.gapRatio) : undefined
+                      return (
+                        <div key={e.ticker} className="rounded-xl border border-neutral-200 bg-white p-4">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-ink">{e.company} <span className="font-mono text-[11px] text-neutral-400">{e.ticker}</span></p>
+                              <p className="mt-0.5 truncate text-xs text-neutral-400">{e.title}</p>
+                            </div>
+                            {e.opinion && <Badge tone={OPINION_TONE[e.opinion] ?? 'slate'}>{e.opinion}</Badge>}
+                          </div>
+                          <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                            <div>
+                              <p className="text-[10px] text-neutral-400">목표</p>
+                              <p className="text-xs font-semibold tabular-nums text-ink">{e.targetPrice > 0 ? e.targetPrice.toLocaleString('ko-KR') : '-'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-neutral-400">현재가</p>
+                              <p className="text-xs font-semibold tabular-nums text-neutral-600">{e.currentPrice > 0 ? e.currentPrice.toLocaleString('ko-KR') : '-'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-neutral-400">괴리율</p>
+                              <p className="text-xs font-semibold">{gTone ? <Badge tone={gTone}>{formatPct(e.gapRatio)}</Badge> : '-'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-neutral-400">기한</p>
+                              <p className="text-xs">{e.nextDue ? <Badge tone={dTone}>{daysLeft <= 0 ? `+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</Badge> : '-'}</p>
+                            </div>
+                          </div>
+                          <p className="mt-2 text-[10px] text-neutral-400">발간 {e.lastUpdated}{e.analystFull !== e.analyst ? ` · ${e.analystFull}` : ''}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
 
               {analystEntries.length > 0 && (
                 <p className="mt-4 text-center text-xs text-neutral-400">현재가 · 괴리율은 대시보드 동기화 데이터 기준</p>
@@ -301,16 +290,6 @@ export default function AnalystPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  )
-}
-
-function Detail({ label, value, highlight }: { label: string; value: string; highlight?: string }) {
-  const colorMap: Record<string, string> = { red: 'text-red-600', orange: 'text-orange-600', amber: 'text-amber-600', green: 'text-emerald-600', brand: 'text-brand-600' }
-  return (
-    <div>
-      <p className="text-[10px] font-medium uppercase tracking-wider text-neutral-400">{label}</p>
-      <p className={`mt-0.5 text-sm font-semibold tabular-nums ${highlight ? colorMap[highlight] || 'text-ink' : 'text-ink'}`}>{value}</p>
     </div>
   )
 }

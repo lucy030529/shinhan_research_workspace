@@ -6,13 +6,11 @@ import { NAV_ITEMS } from './nav'
 
 const SEARCH_MAP: { label: string; to: string; keywords: string[] }[] = [
   { label: '대시보드', to: '/', keywords: ['대시보드', '홈', '메인', 'dashboard'] },
+  { label: '애널리스트 현황', to: '/analyst', keywords: ['애널리스트', 'analyst'] },
   { label: '커버리지 관리', to: '/coverage', keywords: ['커버리지', '종목', 'coverage'] },
   { label: '괴리율 모니터링', to: '/gap-ratio', keywords: ['괴리율', '목표주가', 'gap'] },
-  { label: '보고서 작성', to: '/reports', keywords: ['보고서', '리포트', 'report'] },
-  { label: '자료실 · 수집', to: '/archive', keywords: ['자료실', '수집', '뉴스', '공시', 'dart', 'archive'] },
-  { label: 'IR 자료 수집', to: '/ir', keywords: ['ir', '실적', '자료'] },
   { label: '일정 관리', to: '/calendar', keywords: ['일정', '캘린더', 'calendar'] },
-  { label: '오타 검수', to: '/typo', keywords: ['오타', '검수', 'typo'] },
+  { label: '자료실 · 수집', to: '/archive', keywords: ['자료실', '수집', '공시', 'dart', 'archive'] },
   { label: '내 계정', to: '/account', keywords: ['계정', '프로필', 'account'] },
 ]
 
@@ -34,8 +32,10 @@ export default function AppLayout() {
   const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [visitCount] = useState(() => getVisitCount())
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
   const todayScheduleCount = calendarEvents.filter((e) => e.date === todayStr).length
 
   const searchResults = useMemo(() => {
@@ -60,11 +60,18 @@ export default function AppLayout() {
 
   return (
     <div className="flex min-h-screen bg-neutral-100">
-      {/* Strapi-style 다크 사이드바 */}
-      <aside className="fixed inset-y-0 left-0 z-20 flex w-[230px] flex-col bg-neutral-900">
+      {/* 모바일 오버레이 */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-30 bg-black/40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* 사이드바 */}
+      <aside className={`fixed inset-y-0 left-0 z-40 flex w-[230px] flex-col bg-neutral-900 transition-transform duration-200 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0 md:z-20`}>
         {/* 로고 */}
         <button
-          onClick={() => navigate('/')}
+          onClick={() => { navigate('/'); setSidebarOpen(false) }}
           className="flex h-16 items-center gap-2.5 border-b border-neutral-800 px-5 transition-colors hover:bg-neutral-800"
         >
           <img src="/shinhan-logo.png" alt="신한투자증권" className="h-7 brightness-0 invert" />
@@ -99,7 +106,7 @@ export default function AppLayout() {
                 {searchResults.map((r) => (
                   <button
                     key={r.to}
-                    onClick={() => handleSearchSelect(r.to)}
+                    onClick={() => { handleSearchSelect(r.to); setSidebarOpen(false) }}
                     className="block w-full px-3 py-2 text-left text-xs text-ink hover:bg-neutral-100"
                   >
                     {r.label}
@@ -116,6 +123,7 @@ export default function AppLayout() {
               key={item.to}
               to={item.to}
               end={item.to === '/'}
+              onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded px-3 py-2 text-[13px] font-medium transition-colors ${
                   isActive
@@ -142,9 +150,18 @@ export default function AppLayout() {
       </aside>
 
       {/* 본문 */}
-      <div className="flex flex-1 flex-col pl-[230px]">
-        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-6">
-          <div className="text-sm text-neutral-600">
+      <div className="flex flex-1 flex-col md:pl-[230px]">
+        <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-neutral-200 bg-white px-4 md:px-6">
+          {/* 모바일 햄버거 */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="mr-3 rounded-lg p-1.5 text-neutral-600 hover:bg-neutral-100 md:hidden"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12h18M3 6h18M3 18h18" />
+            </svg>
+          </button>
+          <div className="text-sm text-neutral-600 hidden sm:block">
             {new Date().toLocaleDateString('ko-KR', {
               year: 'numeric',
               month: 'long',
@@ -152,13 +169,16 @@ export default function AppLayout() {
               weekday: 'long',
             })}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="sm:hidden text-sm text-neutral-600">
+            {new Date().toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' })}
+          </div>
+          <div className="flex items-center gap-2 md:gap-3">
             <button
               onClick={() => navigate('/account')}
-              className="flex items-center gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-neutral-100"
+              className="flex items-center gap-2 md:gap-3 rounded-lg px-2 py-1 transition-colors hover:bg-neutral-100"
               title="내 계정"
             >
-              <div className="text-right">
+              <div className="text-right hidden sm:block">
                 <p className="text-sm font-semibold text-ink">{user?.name}</p>
                 <p className="text-[11px] text-neutral-500">
                   {user?.title || (user?.role === 'admin' ? '관리자' : '직급 미설정')}{user?.department ? ` · ${user.department}` : ''} · {user?.email}
@@ -175,17 +195,17 @@ export default function AppLayout() {
                 </div>
               )}
             </button>
-            <div className="h-5 w-px bg-neutral-200" />
+            <div className="h-5 w-px bg-neutral-200 hidden sm:block" />
             <button
               onClick={handleLogout}
-              className="rounded px-3 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100"
+              className="rounded px-2 md:px-3 py-1.5 text-xs md:text-sm text-neutral-600 hover:bg-neutral-100"
             >
               로그아웃
             </button>
           </div>
         </header>
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-3 md:p-6">
           <Outlet />
         </main>
       </div>

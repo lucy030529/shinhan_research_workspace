@@ -10,7 +10,7 @@ const COLOR_CLASSES: Record<CalendarEvent['color'], string> = {
   green: 'bg-emerald-500',
   amber: 'bg-amber-500',
   purple: 'bg-purple-500',
-  cyan: 'bg-cyan-500',
+  cyan: 'bg-shinhan-sky',
 }
 const COLOR_BG: Record<CalendarEvent['color'], string> = {
   blue: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -18,7 +18,7 @@ const COLOR_BG: Record<CalendarEvent['color'], string> = {
   green: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   amber: 'bg-amber-50 text-amber-700 border-amber-200',
   purple: 'bg-purple-50 text-purple-700 border-purple-200',
-  cyan: 'bg-cyan-50 text-cyan-700 border-cyan-200',
+  cyan: 'bg-shinhan-sky/15 text-shinhan-navy border-shinhan-sky/40',
 }
 // 기간 일정 바 색상 (더 진한 배경)
 const COLOR_BAR: Record<CalendarEvent['color'], string> = {
@@ -27,7 +27,7 @@ const COLOR_BAR: Record<CalendarEvent['color'], string> = {
   green: 'bg-emerald-500 text-white',
   amber: 'bg-amber-500 text-white',
   purple: 'bg-purple-500 text-white',
-  cyan: 'bg-cyan-500 text-white',
+  cyan: 'bg-shinhan-sky/60 text-shinhan-navy',
 }
 const COLOR_LABEL: Record<CalendarEvent['color'], string> = {
   blue: '실적',
@@ -90,24 +90,22 @@ function formatDateRange(ev: CalendarEvent): string {
   return ev.date
 }
 
-// 기간 일정의 주간 바 계산
 interface WeekBar {
   ev: CalendarEvent
-  startCol: number // 0-6
-  span: number     // 1-7
-  lane: number     // 0-based row lane
-  isStart: boolean // 이벤트 시작 주인지
-  isEnd: boolean   // 이벤트 종료 주인지
+  startCol: number
+  span: number
+  lane: number
+  isStart: boolean
+  isEnd: boolean
 }
 
-function computeWeekBars(weekDates: string[], events: CalendarEvent[]): WeekBar[] {
-  const multiDayEvents = events.filter(isMultiDay)
+function computeWeekBars(weekDates: string[], allEvents: CalendarEvent[]): WeekBar[] {
+  const multiDayEvents = allEvents.filter(isMultiDay)
   const bars: WeekBar[] = []
-  const lanes: string[][] = [] // lanes[laneIdx] = list of eventIds occupying that lane
+  const lanes: { startCol: number; endCol: number }[][] = []
 
   for (const ev of multiDayEvents) {
     const evEnd = ev.endDate!
-    // 이 주에서 이벤트가 시작/끝나는 위치
     let startCol = -1
     let endCol = -1
     for (let c = 0; c < 7; c++) {
@@ -122,18 +120,18 @@ function computeWeekBars(weekDates: string[], events: CalendarEvent[]): WeekBar[
     const isStart = weekDates[startCol] === ev.date
     const isEnd = weekDates[endCol] === evEnd
 
-    // 레인 할당 (겹치지 않는 레인 찾기)
     let assignedLane = -1
     for (let l = 0; l < lanes.length; l++) {
-      if (!lanes[l].includes(ev.id)) {
+      const hasOverlap = lanes[l].some((b) => !(endCol < b.startCol || startCol > b.endCol))
+      if (!hasOverlap) {
         assignedLane = l
-        lanes[l].push(ev.id)
+        lanes[l].push({ startCol, endCol })
         break
       }
     }
     if (assignedLane === -1) {
       assignedLane = lanes.length
-      lanes.push([ev.id])
+      lanes.push([{ startCol, endCol }])
     }
 
     bars.push({ ev, startCol, span, lane: assignedLane, isStart, isEnd })
@@ -142,7 +140,7 @@ function computeWeekBars(weekDates: string[], events: CalendarEvent[]): WeekBar[
 }
 
 export default function CalendarPage() {
-  const { events, add, remove, fetchEvents, loaded } = useCalendar()
+  const { events, add, remove, update, fetchEvents, loaded } = useCalendar()
   const user = useAuth((s) => s.user)
   const isAdmin = user?.role === 'admin'
   const today = new Date()
@@ -159,6 +157,8 @@ export default function CalendarPage() {
   const [newAnalyst, setNewAnalyst] = useState('')
   const [newTime, setNewTime] = useState('')
   const [newIsDepartment, setNewIsDepartment] = useState(false)
+  const [newParticipants, setNewParticipants] = useState<string[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<Record<string, { name: string; avatar?: string; title?: string }>>({})
 
   useEffect(() => { fetchProfiles().then(setProfiles) }, [])
@@ -190,23 +190,52 @@ export default function CalendarPage() {
 
   function handleAdd() {
     if (!newTitle.trim() || !newDate) return
-    add({
-      date: newDate,
-      ...(newEndDate && newEndDate !== newDate ? { endDate: newEndDate } : {}),
-      title: newTitle.trim(),
-      color: newColor,
-      ...(newAnalyst ? { analyst: newAnalyst } : {}),
-      ...(newTime ? { time: newTime } : {}),
-      ...(newIsDepartment ? { isDepartment: true } : {}),
-      createdBy: user?.name || '',
-    })
+    if (editingId) {
+      update(editingId, {
+        date: newDate,
+        endDate: newEndDate && newEndDate !== newDate ? newEndDate : undefined,
+        title: newTitle.trim(),
+        color: newColor,
+        analyst: newAnalyst || undefined,
+        time: newTime || undefined,
+        isDepartment: newIsDepartment || undefined,
+        participants: newParticipants.length > 0 ? newParticipants : undefined,
+      })
+    } else {
+      add({
+        date: newDate,
+        ...(newEndDate && newEndDate !== newDate ? { endDate: newEndDate } : {}),
+        title: newTitle.trim(),
+        color: newColor,
+        ...(newAnalyst ? { analyst: newAnalyst } : {}),
+        ...(newTime ? { time: newTime } : {}),
+        ...(newIsDepartment ? { isDepartment: true } : {}),
+        ...(newParticipants.length > 0 ? { participants: newParticipants } : {}),
+        createdBy: user?.name || '',
+      })
+    }
     setNewTitle('')
     setNewDate('')
     setNewEndDate('')
     setNewAnalyst('')
     setNewTime('')
     setNewIsDepartment(false)
+    setNewParticipants([])
+    setEditingId(null)
     setShowForm(false)
+  }
+
+  function openEditForm(ev: CalendarEvent) {
+    setEditingId(ev.id)
+    setNewDate(ev.date)
+    setNewEndDate(ev.endDate || '')
+    setNewTitle(ev.title)
+    setNewColor(ev.color)
+    setNewAnalyst(ev.analyst || '')
+    setNewTime(ev.time || '')
+    setNewIsDepartment(!!ev.isDepartment)
+    setNewParticipants(ev.participants || [])
+    setShowForm(true)
   }
 
   function handleCellClick(date: string) {
@@ -214,6 +243,7 @@ export default function CalendarPage() {
   }
 
   function openAddForm(date?: string) {
+    setEditingId(null)
     setNewDate(date || todayStr)
     setNewEndDate('')
     setNewTitle('')
@@ -221,6 +251,7 @@ export default function CalendarPage() {
     setNewAnalyst(user?.name || '')
     setNewTime('')
     setNewIsDepartment(false)
+    setNewParticipants([])
     setShowForm(true)
   }
 
@@ -264,9 +295,10 @@ export default function CalendarPage() {
                     </p>
                   </div>
                 </div>
-                {(isAdmin || ev.createdBy === user?.name) && (
-                  <button onClick={() => remove(ev.id)} className="shrink-0 text-[10px] text-danger-600 hover:underline">삭제</button>
-                )}
+                <div className="flex shrink-0 gap-2">
+                  <button onClick={() => openEditForm(ev)} className="text-[10px] text-brand-500 hover:underline">수정</button>
+                  <button onClick={() => remove(ev.id)} className="text-[10px] text-danger-600 hover:underline">삭제</button>
+                </div>
               </div>
             ))}
           </div>
@@ -298,94 +330,95 @@ export default function CalendarPage() {
           </div>
 
           {/* 주별 렌더링 */}
-          {weeks.map((week, weekIdx) => {
-            const weekDates = week.map((c) => c.date)
-            const bars = computeWeekBars(weekDates, events)
-            const barLaneCount = bars.length > 0 ? Math.max(...bars.map((b) => b.lane)) + 1 : 0
+          {(() => {
+            // 모든 주의 바 레인 수 중 최대값으로 통일 → 모든 셀 높이 동일
+            const allWeekBars = weeks.map((week) => computeWeekBars(week.map((c) => c.date), events))
+            const maxLaneCount = Math.max(0, ...allWeekBars.map((bars) => bars.length > 0 ? Math.max(...bars.map((b) => b.lane)) + 1 : 0))
+            const barSpacerH = maxLaneCount * 22
+            const cellH = 120 + barSpacerH // 기본 120px + 바 공간
 
-            return (
-              <div key={weekIdx}>
-                {/* 날짜 셀 (숫자 + 일정 모두 포함) */}
-                <div className="grid grid-cols-7">
-                  {week.map((cell, colIdx) => {
-                    const isToday = cell.date === todayStr
-                    const isSelected = cell.date === selectedDate
-                    const dayOfWeek = colIdx
-                    const singleEvents = events.filter((ev) => !isMultiDay(ev) && ev.date === cell.date)
-                    const allEvents = [...singleEvents]
+            return weeks.map((week, weekIdx) => {
+              const bars = allWeekBars[weekIdx]
 
-                    return (
-                      <div
-                        key={cell.date}
-                        onClick={() => handleCellClick(cell.date)}
-                        className={`min-h-[80px] cursor-pointer border-b border-r border-neutral-150 p-1.5 transition-colors ${
-                          !cell.isCurrentMonth ? 'bg-neutral-100/50' : ''
-                        } ${isSelected ? 'bg-blue-50 ring-1 ring-inset ring-blue-300' : 'hover:bg-neutral-100'}`}
-                      >
-                        {/* 날짜 숫자 */}
-                        <div className={`mb-1 text-xs font-medium ${
-                          isToday
-                            ? 'inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white'
-                            : !cell.isCurrentMonth
-                              ? 'text-neutral-500/40'
-                              : dayOfWeek === 0 ? 'text-red-400'
-                              : dayOfWeek === 6 ? 'text-blue-400'
-                              : 'text-neutral-600'
-                        }`}>
-                          {cell.day}
-                        </div>
-                        {/* 일정들 (숫자 아래) */}
-                        <div className="space-y-0.5">
-                          {allEvents.slice(0, 3).map((ev) => (
-                            <div
-                              key={ev.id}
-                              className={`truncate rounded px-1 py-0.5 text-[10px] font-medium leading-tight border ${COLOR_BG[ev.color]} ${ev.isDepartment ? 'ring-1 ring-brand-300' : ''}`}
-                              title={`${ev.isDepartment ? '[공통] ' : ''}${ev.title}${ev.analyst ? ` (${ev.analyst})` : ''}${ev.time ? ` ${ev.time}` : ''}`}
-                            >
-                              {ev.isDepartment ? '★ ' : ''}{ev.time ? `${ev.time} ` : ''}{ev.title}
-                            </div>
-                          ))}
-                          {allEvents.length > 3 && (
-                            <div className="text-[10px] text-neutral-500 px-1">+{allEvents.length - 3}건</div>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+              return (
+                <div key={weekIdx} className="relative">
+                  <div className="grid grid-cols-7">
+                    {week.map((cell, colIdx) => {
+                      const isToday = cell.date === todayStr
+                      const isSelected = cell.date === selectedDate
+                      const dayOfWeek = colIdx
+                      const singleEvents = events.filter((ev) => !isMultiDay(ev) && ev.date === cell.date)
 
-                {/* 기간 일정 바 (날짜 아래) */}
-                {barLaneCount > 0 && (
-                  <div className="relative grid grid-cols-7 border-b border-neutral-150 bg-neutral-100/30" style={{ height: barLaneCount * 22 + 4 }}>
-                    {week.map((_, colIdx) => (
-                      <div key={colIdx} className="border-r border-neutral-150" />
-                    ))}
-                    {bars.map((bar) => {
-                      const leftPct = (bar.startCol / 7) * 100
-                      const widthPct = (bar.span / 7) * 100
                       return (
                         <div
-                          key={bar.ev.id + '-' + weekIdx}
-                          className={`absolute z-10 truncate px-1.5 text-[10px] font-medium leading-[20px] ${COLOR_BAR[bar.ev.color]} ${
-                            bar.isStart ? 'rounded-l' : ''
-                          } ${bar.isEnd ? 'rounded-r' : ''}`}
-                          style={{
-                            top: bar.lane * 22 + 2,
-                            left: `calc(${leftPct}% + 2px)`,
-                            width: `calc(${widthPct}% - 4px)`,
-                            height: 20,
-                          }}
-                          title={`${bar.ev.title} (${formatDateRange(bar.ev)})`}
+                          key={cell.date}
+                          onClick={() => handleCellClick(cell.date)}
+                          style={{ height: cellH }}
+                          className={`cursor-pointer overflow-hidden border-b border-r border-neutral-150 p-1.5 transition-colors ${
+                            !cell.isCurrentMonth ? 'bg-neutral-100/50' : ''
+                          } ${isSelected ? 'bg-blue-50 ring-1 ring-inset ring-blue-300' : 'hover:bg-neutral-100'}`}
                         >
-                          {bar.isStart ? (bar.ev.isDepartment ? '★ ' : '') + bar.ev.title : ''}
+                          {/* 날짜 숫자 */}
+                          <div className={`mb-1 h-5 text-xs font-medium leading-5 ${
+                            isToday
+                              ? 'inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white'
+                              : !cell.isCurrentMonth
+                                ? 'text-neutral-500/40'
+                                : dayOfWeek === 0 ? 'text-red-400'
+                                : dayOfWeek === 6 ? 'text-blue-400'
+                                : 'text-neutral-600'
+                          }`}>
+                            {cell.day}
+                          </div>
+                          {/* 기간 일정 바 공간 확보 */}
+                          {barSpacerH > 0 && <div style={{ height: barSpacerH }} />}
+                          {/* 개별 일정 */}
+                          <div className="space-y-px">
+                            {singleEvents.slice(0, 3).map((ev) => (
+                              <div
+                                key={ev.id}
+                                className={`h-[18px] truncate rounded px-1 text-[10px] font-medium leading-[18px] border ${COLOR_BG[ev.color]} ${ev.isDepartment ? 'ring-1 ring-brand-300' : ''}`}
+                                title={`${ev.isDepartment ? '[공통] ' : ''}${ev.title}${ev.analyst ? ` (${ev.analyst})` : ''}${ev.time ? ` ${ev.time}` : ''}${ev.participants?.length ? ` · 참여: ${ev.participants.join(', ')}` : ''}`}
+                              >
+                                {ev.isDepartment ? '★ ' : ''}{ev.time ? `${ev.time} ` : ''}{ev.title}
+                              </div>
+                            ))}
+                            {singleEvents.length > 3 && (
+                              <div className="text-[10px] text-neutral-500 px-1">+{singleEvents.length - 3}건</div>
+                            )}
+                          </div>
                         </div>
                       )
                     })}
                   </div>
-                )}
-              </div>
-            )
-          })}
+                  {/* 기간 일정 바 (절대 위치, 셀 위에 겹침) */}
+                  {bars.map((bar) => (
+                    <div
+                      key={`${bar.ev.id}-${weekIdx}`}
+                      className="pointer-events-none absolute z-10"
+                      style={{
+                        top: `${30 + bar.lane * 22}px`,
+                        left: `${(bar.startCol / 7) * 100}%`,
+                        width: `${(bar.span / 7) * 100}%`,
+                      }}
+                    >
+                      <div
+                        className={`pointer-events-auto h-[18px] truncate px-1.5 text-[10px] font-bold leading-[18px] ${COLOR_BAR[bar.ev.color]} ${
+                          bar.isStart && bar.isEnd ? 'mx-1 rounded'
+                          : bar.isStart ? 'ml-1 rounded-l'
+                          : bar.isEnd ? 'mr-1 rounded-r'
+                          : ''
+                        } ${bar.ev.isDepartment ? 'ring-1 ring-brand-300' : ''}`}
+                        title={`${bar.ev.isDepartment ? '[공통] ' : ''}${bar.ev.title} (${formatDateRange(bar.ev)})${bar.ev.analyst ? ` · ${bar.ev.analyst}` : ''}`}
+                      >
+                        {bar.isStart ? `${bar.ev.isDepartment ? '★ ' : ''}${bar.ev.title}` : '\u00A0'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            })
+          })()}
         </Card>
 
         {/* 사이드 패널 */}
@@ -422,6 +455,7 @@ export default function CalendarPage() {
                           {ev.analyst && ` · ${ev.analyst}`}
                           {ev.time && ` · ${ev.time}`}
                           {ev.endDate && ev.endDate !== ev.date && ` · ~${ev.endDate}`}
+                          {ev.participants && ev.participants.length > 0 && ` · 참여: ${ev.participants.join(', ')}`}
                         </p>
                       </div>
                     </div>
@@ -478,10 +512,10 @@ export default function CalendarPage() {
 
       {/* 일정 추가 모달 */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setShowForm(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => { setShowForm(false); setEditingId(null) }}>
           <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-ink">
-              {newIsDepartment ? '부서 공통사항 추가' : '일정 추가'}
+              {editingId ? (newIsDepartment ? '부서 공통사항 수정' : '일정 수정') : (newIsDepartment ? '부서 공통사항 추가' : '일정 추가')}
             </h2>
 
             <label className="mt-4 flex items-center gap-2 cursor-pointer">
@@ -531,6 +565,30 @@ export default function CalendarPage() {
               </div>
             )}
 
+            <div className="mt-3">
+              <label className="block text-xs font-medium text-neutral-600">참여자 <span className="text-neutral-400">(선택)</span></label>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {(() => {
+                  const profileNames = Object.values(profiles).map((p) => p.name).filter(Boolean)
+                  const allNames = [...new Set([...ANALYSTS, ...profileNames])].sort()
+                  return allNames.map((a) => (
+                    <button
+                      key={a}
+                      type="button"
+                      onClick={() => setNewParticipants((prev) => prev.includes(a) ? prev.filter((p) => p !== a) : [...prev, a])}
+                      className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                        newParticipants.includes(a)
+                          ? 'border-brand-500 bg-brand-50 text-brand-700 font-semibold'
+                          : 'border-neutral-200 text-neutral-600 hover:bg-neutral-100'
+                      }`}
+                    >
+                      {a}
+                    </button>
+                  ))
+                })()}
+              </div>
+            </div>
+
             <label className="mt-3 block text-xs font-medium text-neutral-600">카테고리</label>
             <div className="mt-1.5 flex flex-wrap gap-2">
               {COLORS.map((c) => (
@@ -545,8 +603,8 @@ export default function CalendarPage() {
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
-              <button onClick={() => setShowForm(false)} className="rounded-lg px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100">취소</button>
-              <Button onClick={handleAdd} disabled={!newTitle.trim() || !newDate}>추가</Button>
+              <button onClick={() => { setShowForm(false); setEditingId(null) }} className="rounded-lg px-4 py-2 text-sm text-neutral-600 hover:bg-neutral-100">취소</button>
+              <Button onClick={handleAdd} disabled={!newTitle.trim() || !newDate}>{editingId ? '저장' : '추가'}</Button>
             </div>
           </div>
         </div>

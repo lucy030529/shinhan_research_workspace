@@ -10,6 +10,7 @@ export interface CalendarEvent {
   time?: string // HH:mm
   createdBy?: string
   isDepartment?: boolean // 부서 공통사항
+  participants?: string[] // 참여자
   createdAt: string
 }
 

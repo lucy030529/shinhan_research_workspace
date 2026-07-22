@@ -102,16 +102,16 @@ export default function CoveragePage() {
 
       <Card>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full table-fixed text-sm">
             <thead>
               <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
-                <th className="px-5 py-3 font-medium">종목코드</th>
-                <th className="px-5 py-3 font-medium">종목명</th>
-                <th className="px-5 py-3 font-medium">담당 애널리스트</th>
-                <th className="px-5 py-3 font-medium">최근 업데이트</th>
-                <th className="px-5 py-3 font-medium">다음 기한</th>
-                <th className="px-5 py-3 font-medium">상태</th>
-                {isAdmin && <th className="px-5 py-3 font-medium">관리</th>}
+                <th className="w-[12%] px-5 py-3 font-medium">종목코드</th>
+                <th className="w-[20%] px-5 py-3 font-medium">종목명</th>
+                <th className="w-[15%] px-5 py-3 font-medium">담당 애널리스트</th>
+                <th className="w-[15%] px-5 py-3 font-medium">최근 업데이트</th>
+                <th className="w-[15%] px-5 py-3 font-medium">다음 기한</th>
+                <th className="w-[10%] px-5 py-3 font-medium">상태</th>
+                {isAdmin && <th className="w-[13%] px-5 py-3 font-medium">관리</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-150">

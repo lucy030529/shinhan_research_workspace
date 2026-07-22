@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Badge, Card, PageHeader, StatTile } from '../components/ui'
+import { Badge, Card, CardHeader, PageHeader, StatTile } from '../components/ui'
 import { useCoverage } from '../store/coverage'
 import { useGapRatio } from '../store/gapRatio'
 import { useCalendar } from '../store/calendar'
@@ -90,6 +90,16 @@ export default function DashboardPage() {
       .sort((a, b) => a.date.localeCompare(b.date))
   }, [calendarEvents, todayStr, weekLaterStr])
 
+  const dueSoonByAnalyst = useMemo(() => {
+    const map = new Map<string, typeof dueSoon>()
+    for (const c of dueSoon) {
+      const key = c.analyst || '미지정'
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(c)
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [dueSoon])
+
   const tickerAnalystMap = useMemo(() => {
     const map = new Map<string, string>()
     for (const c of coverageItems) {
@@ -97,6 +107,34 @@ export default function DashboardPage() {
     }
     return map
   }, [coverageItems])
+
+  const warningsByAnalyst = useMemo(() => {
+    const map = new Map<string, typeof warnings>()
+    for (const g of warnings) {
+      const analyst = tickerAnalystMap.get(g.ticker) || '미지정'
+      if (!map.has(analyst)) map.set(analyst, [])
+      map.get(analyst)!.push(g)
+    }
+    return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]))
+  }, [warnings, tickerAnalystMap])
+
+  const [openDueAnalysts, setOpenDueAnalysts] = useState<Set<string>>(new Set())
+  const [openWarnAnalysts, setOpenWarnAnalysts] = useState<Set<string>>(new Set())
+
+  function toggleDue(analyst: string) {
+    setOpenDueAnalysts((prev) => {
+      const next = new Set(prev)
+      next.has(analyst) ? next.delete(analyst) : next.add(analyst)
+      return next
+    })
+  }
+  function toggleWarn(analyst: string) {
+    setOpenWarnAnalysts((prev) => {
+      const next = new Set(prev)
+      next.has(analyst) ? next.delete(analyst) : next.add(analyst)
+      return next
+    })
+  }
 
   const COLOR_LABEL: Record<string, string> = {
     blue: '리포트', red: '마감', green: '미팅', amber: '공시', purple: '기타', cyan: '교육',
@@ -202,103 +240,87 @@ export default function DashboardPage() {
       <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* 커버리지 만기 임박 */}
         <Card>
-          <div className="flex items-center justify-between border-b border-neutral-150 px-5 py-3.5">
-            <h3 className="text-sm font-semibold text-ink">커버리지 업데이트 임박</h3>
-            {dueSoon.length > 0 && (
-              <a href="/coverage" className="text-xs text-brand-500 hover:underline">전체 보기 →</a>
+          <CardHeader title="커버리지 업데이트 임박 (6개월 룰)" />
+          <div className="divide-y divide-neutral-150">
+            {dueSoon.length === 0 && (
+              <p className="px-5 py-8 text-center text-sm text-neutral-500">임박한 항목이 없습니다.</p>
             )}
-          </div>
-          {dueSoon.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-neutral-500">임박한 항목이 없습니다.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
-                    <th className="px-4 py-2 text-left font-medium">종목</th>
-                    <th className="px-4 py-2 font-medium">담당</th>
-                    <th className="px-4 py-2 font-medium">기한</th>
-                    <th className="px-4 py-2 font-medium">상태</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-150">
-                  {dueSoon.slice(0, 8).map((c) => (
-                    <tr key={c.id} className={`${c.days <= 0 ? 'bg-red-50/50' : c.days <= 14 ? 'bg-amber-50/30' : ''}`}>
-                      <td className="px-4 py-2.5 text-left">
-                        <p className="font-medium text-ink">{c.name}</p>
-                        <p className="text-xs text-neutral-400">{c.ticker}</p>
-                      </td>
-                      <td className="px-4 py-2.5 text-center text-neutral-600">{c.analyst}</td>
-                      <td className="px-4 py-2.5 text-center tabular-nums text-neutral-600">{c.nextDue}</td>
-                      <td className="px-4 py-2.5 text-center">
+            {dueSoonByAnalyst.map(([analyst, items]) => (
+              <div key={analyst}>
+                <button
+                  onClick={() => toggleDue(analyst)}
+                  className="flex w-full items-center justify-between px-5 py-3 text-left hover:bg-neutral-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
+                      className={`text-neutral-500 transition-transform ${openDueAnalysts.has(analyst) ? 'rotate-90' : ''}`}>
+                      <path d="M4 2l4 4-4 4z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-ink">{analyst}</span>
+                    <Badge tone="slate">{items.length}종목</Badge>
+                  </div>
+                  <Badge tone={dueTone(Math.min(...items.map((c) => c.days)))}>
+                    {(() => { const m = Math.min(...items.map((c) => c.days)); return m < 0 ? `${-m}일 초과` : `D-${m}` })()}
+                  </Badge>
+                </button>
+                {openDueAnalysts.has(analyst) && (
+                  <div className="divide-y divide-neutral-150 bg-neutral-100/50">
+                    {items.map((c) => (
+                      <div key={c.id} className="flex items-center justify-between px-8 py-2.5">
+                        <div>
+                          <p className="text-sm text-ink">{c.name} <span className="text-neutral-500">{c.ticker}</span></p>
+                          <p className="text-xs text-neutral-500">기한 {c.nextDue}</p>
+                        </div>
                         <Badge tone={dueTone(c.days)}>
                           {c.days < 0 ? `${-c.days}일 초과` : `D-${c.days}`}
                         </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {dueSoon.length > 8 && (
-                <div className="border-t border-neutral-150 px-4 py-2.5 text-center">
-                  <a href="/coverage" className="text-xs text-brand-500 hover:underline">+{dueSoon.length - 8}건 더 보기</a>
-                </div>
-              )}
-            </div>
-          )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </Card>
 
         {/* 괴리율 경고 */}
         <Card>
-          <div className="flex items-center justify-between border-b border-neutral-150 px-5 py-3.5">
-            <h3 className="text-sm font-semibold text-ink">괴리율 경고</h3>
-            {warnings.length > 0 && (
-              <a href="/gap-ratio" className="text-xs text-brand-500 hover:underline">전체 보기 →</a>
+          <CardHeader title="괴리율 경고" />
+          <div className="divide-y divide-neutral-150">
+            {warnings.length === 0 && (
+              <p className="px-5 py-8 text-center text-sm text-neutral-500">경고 없음</p>
             )}
+            {warningsByAnalyst.map(([analyst, items]) => (
+              <div key={analyst}>
+                <button
+                  onClick={() => toggleWarn(analyst)}
+                  className="flex w-full items-center justify-between px-5 py-3 text-left hover:bg-neutral-100 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"
+                      className={`text-neutral-500 transition-transform ${openWarnAnalysts.has(analyst) ? 'rotate-90' : ''}`}>
+                      <path d="M4 2l4 4-4 4z" />
+                    </svg>
+                    <span className="text-sm font-semibold text-ink">{analyst}</span>
+                    <Badge tone="slate">{items.length}종목</Badge>
+                  </div>
+                </button>
+                {openWarnAnalysts.has(analyst) && (
+                  <div className="divide-y divide-neutral-150 bg-neutral-100/50">
+                    {items.map((g) => (
+                      <div key={g.id} className="flex items-center justify-between px-8 py-2.5">
+                        <div>
+                          <p className="text-sm text-ink">{g.name}</p>
+                          <p className="text-xs text-neutral-500">{g.ticker}</p>
+                        </div>
+                        <Badge tone={gapTone(g.gapRatio)}>{formatPct(g.gapRatio)}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
-          {warnings.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-neutral-500">경고 없음</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
-                    <th className="px-4 py-2 text-left font-medium">종목</th>
-                    <th className="px-4 py-2 font-medium">담당</th>
-                    <th className="px-4 py-2 font-medium">괴리율</th>
-                    <th className="px-4 py-2 font-medium">상태</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-150">
-                  {[...warnings].sort((a, b) => Math.abs(b.gapRatio) - Math.abs(a.gapRatio)).slice(0, 8).map((g) => {
-                    const tone = gapTone(g.gapRatio)
-                    return (
-                      <tr key={g.id} className={`${tone === 'red' ? 'bg-red-50/50' : tone === 'orange' ? 'bg-orange-50/40' : ''}`}>
-                        <td className="px-4 py-2.5 text-left">
-                          <p className="font-medium text-ink">{g.name}</p>
-                          <p className="text-xs text-neutral-400">{g.ticker}</p>
-                        </td>
-                        <td className="px-4 py-2.5 text-center text-neutral-600">{tickerAnalystMap.get(g.ticker) || '미지정'}</td>
-                        <td className={`px-4 py-2.5 text-center font-bold tabular-nums ${tone === 'red' ? 'text-red-600' : tone === 'orange' ? 'text-orange-600' : 'text-amber-600'}`}>
-                          {formatPct(g.gapRatio)}
-                        </td>
-                        <td className="px-4 py-2.5 text-center">
-                          <Badge tone={tone === 'red' ? 'red' : tone === 'orange' ? 'orange' : 'amber'}>
-                            {tone === 'red' ? '위험' : tone === 'orange' ? '경고' : '주의'}
-                          </Badge>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-              {warnings.length > 8 && (
-                <div className="border-t border-neutral-150 px-4 py-2.5 text-center">
-                  <a href="/gap-ratio" className="text-xs text-brand-500 hover:underline">+{warnings.length - 8}건 더 보기</a>
-                </div>
-              )}
-            </div>
-          )}
         </Card>
       </div>
 

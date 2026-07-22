@@ -22,7 +22,7 @@ export default function GapRatioPage() {
   const [analystFilter, setAnalystFilter] = useState('')
   const [pageSize, setPageSize] = useState(15)
   const [page, setPage] = useState(1)
-  const [activePill, setActivePill] = useState<'all' | 'red' | 'orange' | 'amber' | null>(null)
+  const [activePill, setActivePill] = useState<'all' | 'red' | 'orange' | 'amber'>('all')
 
   // 방어적: items가 배열이 아닌 경우 빈 배열 사용
   const items = Array.isArray(rawItems) ? rawItems : []
@@ -64,9 +64,6 @@ export default function GapRatioPage() {
     .filter((g) => g && (!analystFilter || (tickerAnalystMap.get(g.ticker) || '미지정') === analystFilter))
     .sort((a, b) => Math.abs(safeGap(b.gapRatio)) - Math.abs(safeGap(a.gapRatio)))
 
-  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize))
-  const safePage = Math.min(page, totalPages)
-  const pagedRows = rows.slice((safePage - 1) * pageSize, safePage * pageSize)
 
   function handleSave(data: { ticker: string; name: string; targetPrice: number; currentPrice: number }) {
     upsert(data)
@@ -116,12 +113,16 @@ export default function GapRatioPage() {
         </div>
       </div>
 
-      {/* Pill 탭 네비게이션 */}
+      {/* Pill 탭 + 통합 테이블 */}
       {(() => {
         const dangerItems = rows.filter((g) => Math.abs(safeGap(g.gapRatio)) >= 100)
         const warnItems = rows.filter((g) => { const a = Math.abs(safeGap(g.gapRatio)); return a >= 50 && a < 100 })
         const cautionItems = rows.filter((g) => { const a = Math.abs(safeGap(g.gapRatio)); return a >= 30 && a < 50 })
         const pillItems = activePill === 'all' ? rows : activePill === 'red' ? dangerItems : activePill === 'orange' ? warnItems : activePill === 'amber' ? cautionItems : []
+
+        const pillTotalPages = Math.max(1, Math.ceil(pillItems.length / pageSize))
+        const pillSafePage = Math.min(page, pillTotalPages)
+        const pillPagedRows = pillItems.slice((pillSafePage - 1) * pageSize, pillSafePage * pageSize)
 
         const pills: { key: typeof activePill; label: string; count: number; base: string; active: string }[] = [
           { key: 'all', label: '전체 종목', count: rows.length, base: 'text-neutral-600 hover:bg-neutral-100', active: 'bg-ink text-white shadow-md' },
@@ -136,7 +137,7 @@ export default function GapRatioPage() {
               {pills.map((pill) => (
                 <button
                   key={pill.key}
-                  onClick={() => setActivePill(activePill === pill.key ? null : pill.key)}
+                  onClick={() => { setActivePill(pill.key!); setPage(1) }}
                   className={`relative rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
                     activePill === pill.key ? pill.active : pill.base
                   }`}
@@ -151,155 +152,110 @@ export default function GapRatioPage() {
               ))}
             </div>
 
-            {activePill && pillItems.length > 0 && (
-              <Card className="mb-4 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500 bg-neutral-100/60">
-                        <th className="px-5 py-2.5 text-left font-medium">종목</th>
-                        <th className="px-5 py-2.5 font-medium">담당 애널리스트</th>
-                        <th className="px-5 py-2.5 font-medium">목표주가</th>
-                        <th className="px-5 py-2.5 font-medium">현재가</th>
-                        <th className="px-5 py-2.5 font-medium">괴리율</th>
+            <Card className="overflow-hidden">
+              <div className="flex items-center justify-between border-b border-neutral-150 px-5 py-3.5">
+                <h3 className="text-sm font-semibold text-ink">
+                  {pillItems.length}건
+                  {pillItems.length > 0 && <span className="ml-1 font-normal text-neutral-500">({(pillSafePage - 1) * pageSize + 1}–{Math.min(pillSafePage * pageSize, pillItems.length)})</span>}
+                </h3>
+                {lastRefreshed && (
+                  <span className="text-xs text-neutral-400">
+                    {new Date(lastRefreshed).toLocaleString('ko-KR')} 기준
+                  </span>
+                )}
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full table-fixed text-sm">
+                  <thead>
+                    <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
+                      <th className="w-[22%] px-5 py-3 text-left font-medium">종목</th>
+                      <th className="w-[16%] px-5 py-3 font-medium">담당 애널리스트</th>
+                      <th className="w-[14%] px-5 py-3 font-medium">목표주가</th>
+                      <th className="w-[14%] px-5 py-3 font-medium">현재가</th>
+                      <th className="w-[12%] px-5 py-3 font-medium">괴리율</th>
+                      <th className="w-[10%] px-5 py-3 font-medium">상태</th>
+                      {isAdmin && <th className="w-[12%] px-5 py-3 font-medium">관리</th>}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-150">
+                    {pillPagedRows.map((g) => {
+                      const gap = safeGap(g.gapRatio)
+                      const tone = gapTone(gap)
+                      return (
+                        <tr key={g.id} className="transition-colors hover:bg-neutral-100">
+                          <td className="px-5 py-3 text-left">
+                            <p className="font-medium text-ink">{g.name || '(이름 없음)'}</p>
+                            <p className="text-xs text-neutral-400">{g.ticker || '-'}</p>
+                          </td>
+                          <td className="px-5 py-3 text-center text-neutral-600">{tickerAnalystMap.get(g.ticker) || '미지정'}</td>
+                          <td className="px-5 py-3 text-center tabular-nums text-neutral-600">{formatWon(g.targetPrice ?? 0)}</td>
+                          <td className="px-5 py-3 text-center tabular-nums text-neutral-600">{formatWon(g.currentPrice ?? 0)}</td>
+                          <td className={`px-5 py-3 text-center font-bold tabular-nums ${tone === 'red' ? 'text-red-600' : tone === 'orange' ? 'text-orange-600' : tone === 'amber' ? 'text-amber-600' : 'text-emerald-600'}`}>
+                            {formatPct(gap)}
+                          </td>
+                          <td className="px-5 py-3 text-center">
+                            {tone === 'red' ? (
+                              <Badge tone="red">위험</Badge>
+                            ) : tone === 'orange' ? (
+                              <Badge tone="orange">경고</Badge>
+                            ) : tone === 'amber' ? (
+                              <Badge tone="amber">주의</Badge>
+                            ) : (
+                              <Badge tone="green">정상</Badge>
+                            )}
+                          </td>
+                          {isAdmin && (
+                            <td className="px-5 py-3 text-center">
+                              <div className="flex justify-center gap-2">
+                                <button className="text-xs text-brand-500 hover:underline" onClick={() => setModal(g)}>수정</button>
+                                <button className="text-xs text-danger-600 hover:underline" onClick={() => handleDelete(g.id, g.name)}>삭제</button>
+                              </div>
+                            </td>
+                          )}
+                        </tr>
+                      )
+                    })}
+                    {pillItems.length === 0 && (
+                      <tr>
+                        <td colSpan={isAdmin ? 7 : 6} className="px-5 py-8 text-center text-sm text-neutral-400">
+                          해당 항목이 없습니다.
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-150">
-                      {pillItems.map((g) => {
-                        const gap = safeGap(g.gapRatio)
-                        const tone = gapTone(gap)
-                        return (
-                          <tr key={g.id} className="hover:bg-neutral-100/50">
-                            <td className="px-5 py-2.5 text-left">
-                              <span className="font-medium text-ink">{g.name}</span>
-                              <span className="ml-2 text-xs text-neutral-400">{g.ticker}</span>
-                            </td>
-                            <td className="px-5 py-2.5 text-center text-neutral-600">{tickerAnalystMap.get(g.ticker) || '미지정'}</td>
-                            <td className="px-5 py-2.5 text-center tabular-nums text-neutral-600">{formatWon(g.targetPrice ?? 0)}</td>
-                            <td className="px-5 py-2.5 text-center tabular-nums text-neutral-600">{formatWon(g.currentPrice ?? 0)}</td>
-                            <td className={`px-5 py-2.5 text-center font-bold tabular-nums ${tone === 'red' ? 'text-red-600' : tone === 'orange' ? 'text-orange-600' : tone === 'amber' ? 'text-amber-600' : 'text-emerald-600'}`}>
-                              {formatPct(gap)}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {pillTotalPages > 1 && (
+                <div className="flex items-center justify-center gap-1 border-t border-neutral-150 px-5 py-3">
+                  <button
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={pillSafePage <= 1}
+                    className="rounded px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40"
+                  >
+                    이전
+                  </button>
+                  {Array.from({ length: pillTotalPages }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`rounded px-2.5 py-1.5 text-xs font-medium transition-colors ${p === pillSafePage ? 'bg-brand-500 text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setPage((p) => Math.min(pillTotalPages, p + 1))}
+                    disabled={pillSafePage >= pillTotalPages}
+                    className="rounded px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40"
+                  >
+                    다음
+                  </button>
                 </div>
-              </Card>
-            )}
-            {activePill && pillItems.length === 0 && (
-              <Card className="mb-4">
-                <p className="px-5 py-6 text-center text-sm text-neutral-400">해당 항목이 없습니다.</p>
-              </Card>
-            )}
+              )}
+            </Card>
           </>
         )
       })()}
-
-      {/* 통합 테이블 */}
-      <Card>
-        <div className="flex items-center justify-between border-b border-neutral-150 px-5 py-3.5">
-          <h3 className="text-sm font-semibold text-ink">
-            전체 {rows.length}건
-            {rows.length > 0 && <span className="ml-1 font-normal text-neutral-500">({(safePage - 1) * pageSize + 1}–{Math.min(safePage * pageSize, rows.length)})</span>}
-          </h3>
-          {lastRefreshed && (
-            <span className="text-xs text-neutral-400">
-              {new Date(lastRefreshed).toLocaleString('ko-KR')} 기준
-            </span>
-          )}
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
-                <th className="px-5 py-3 text-left font-medium">종목</th>
-                <th className="px-5 py-3 font-medium">담당 애널리스트</th>
-                <th className="px-5 py-3 font-medium">목표주가</th>
-                <th className="px-5 py-3 font-medium">현재가</th>
-                <th className="px-5 py-3 font-medium">괴리율</th>
-                <th className="px-5 py-3 font-medium">상태</th>
-                {isAdmin && <th className="px-5 py-3 font-medium">관리</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-150">
-              {pagedRows.map((g) => {
-                const gap = safeGap(g.gapRatio)
-                const tone = gapTone(gap)
-                const rowBg = tone === 'red' ? 'bg-red-50/60' : tone === 'orange' ? 'bg-orange-50/50' : tone === 'amber' ? 'bg-amber-50/40' : ''
-                return (
-                  <tr key={g.id} className={`transition-colors hover:bg-neutral-100 ${rowBg}`}>
-                    <td className="px-5 py-3 text-left">
-                      <p className="font-medium text-ink">{g.name || '(이름 없음)'}</p>
-                      <p className="text-xs text-neutral-400">{g.ticker || '-'}</p>
-                    </td>
-                    <td className="px-5 py-3 text-center text-neutral-600">{tickerAnalystMap.get(g.ticker) || '미지정'}</td>
-                    <td className="px-5 py-3 text-center tabular-nums text-neutral-600">{formatWon(g.targetPrice ?? 0)}</td>
-                    <td className="px-5 py-3 text-center tabular-nums text-neutral-600">{formatWon(g.currentPrice ?? 0)}</td>
-                    <td className={`px-5 py-3 text-center font-bold tabular-nums ${tone === 'red' ? 'text-red-600' : tone === 'orange' ? 'text-orange-600' : tone === 'amber' ? 'text-amber-600' : 'text-emerald-600'}`}>
-                      {formatPct(gap)}
-                    </td>
-                    <td className="px-5 py-3 text-center">
-                      {tone === 'red' ? (
-                        <Badge tone="red">위험</Badge>
-                      ) : tone === 'orange' ? (
-                        <Badge tone="orange">경고</Badge>
-                      ) : tone === 'amber' ? (
-                        <Badge tone="amber">주의</Badge>
-                      ) : (
-                        <Badge tone="green">정상</Badge>
-                      )}
-                    </td>
-                    {isAdmin && (
-                      <td className="px-5 py-3 text-center">
-                        <div className="flex justify-center gap-2">
-                          <button className="text-xs text-brand-500 hover:underline" onClick={() => setModal(g)}>수정</button>
-                          <button className="text-xs text-danger-600 hover:underline" onClick={() => handleDelete(g.id, g.name)}>삭제</button>
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                )
-              })}
-              {rows.length === 0 && (
-                <tr>
-                  <td colSpan={isAdmin ? 7 : 6} className="px-5 py-8 text-center text-sm text-neutral-400">
-                    등록된 항목이 없습니다.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-1 border-t border-neutral-150 px-5 py-3">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={safePage <= 1}
-              className="rounded px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40"
-            >
-              이전
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-              <button
-                key={p}
-                onClick={() => setPage(p)}
-                className={`rounded px-2.5 py-1.5 text-xs font-medium transition-colors ${p === safePage ? 'bg-brand-500 text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
-              >
-                {p}
-              </button>
-            ))}
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={safePage >= totalPages}
-              className="rounded px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40"
-            >
-              다음
-            </button>
-          </div>
-        )}
-      </Card>
 
       {modal && (
         <GapRatioModal

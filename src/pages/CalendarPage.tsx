@@ -144,7 +144,7 @@ export default function CalendarPage() {
   const user = useAuth((s) => s.user)
   const isAdmin = user?.role === 'admin'
   const today = new Date()
-  const todayStr = today.toISOString().slice(0, 10)
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   const [viewYear, setViewYear] = useState(today.getFullYear())
   const [viewMonth, setViewMonth] = useState(today.getMonth())

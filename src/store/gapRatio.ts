@@ -160,7 +160,7 @@ export const useGapRatio = create<GapRatioState>()(
     }),
     {
       name: 'shinhan-gap-ratio',
-      version: 7,
+      version: 8,
       migrate: () => ({ items: [], lastRefreshed: null }),
     },
   ),

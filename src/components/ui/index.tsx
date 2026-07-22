@@ -39,7 +39,7 @@ const toneMap: Record<Tone, string> = {
 export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: Tone }) {
   return (
     <span
-      className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${toneMap[tone]}`}
+      className={`inline-flex items-center whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium ${toneMap[tone]}`}
     >
       {children}
     </span>

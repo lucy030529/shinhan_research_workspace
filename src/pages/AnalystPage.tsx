@@ -83,13 +83,13 @@ export default function AnalystPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-ink">애널리스트 현황</h1>
-        <p className="mt-1 text-sm text-neutral-500">애널리스트를 선택하면 커버리지 종목 상세를 확인할 수 있습니다.</p>
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-lg sm:text-xl font-bold text-ink">애널리스트 현황</h1>
+        <p className="mt-1 text-xs sm:text-sm text-neutral-500">애널리스트를 선택하면 커버리지 종목 상세를 확인할 수 있습니다.</p>
       </div>
 
-      {/* 애널리스트 카드 그리드 */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+      {/* 애널리스트 카드 그리드 — 모바일에서 컴팩트하게 */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {ANALYSTS.map((a) => {
           const p = profiles[a]
           const s = analystStats[a]
@@ -98,43 +98,43 @@ export default function AnalystPage() {
             <button
               key={a}
               onClick={() => { setSelectedAnalyst(isActive ? null : a); setSearchQuery('') }}
-              className={`w-full rounded-xl border p-4 text-left transition-all ${
+              className={`w-full rounded-xl border p-3 sm:p-4 text-left transition-all ${
                 isActive
                   ? 'border-brand-500 bg-brand-50 shadow-md shadow-brand-500/10'
                   : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm'
               }`}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {p?.avatar?.startsWith('data:') ? (
-                  <img src={p.avatar} alt="" className={`h-10 w-10 rounded-full object-cover ring-2 ${isActive ? 'ring-brand-300' : 'ring-neutral-200'}`} />
+                  <img src={p.avatar} alt="" className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover ring-2 ${isActive ? 'ring-brand-300' : 'ring-neutral-200'}`} />
                 ) : (
-                  <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white ${isActive ? 'bg-brand-500' : 'bg-neutral-400'}`}>
+                  <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white ${isActive ? 'bg-brand-500' : 'bg-neutral-400'}`}>
                     {a[0]}
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className={`font-semibold ${isActive ? 'text-brand-700' : 'text-ink'}`}>{a}</p>
-                  {p?.title && <p className="truncate text-[11px] text-neutral-400">{p.title}</p>}
+                  <p className={`text-sm sm:text-base font-semibold ${isActive ? 'text-brand-700' : 'text-ink'}`}>{a}</p>
+                  {p?.title && <p className="truncate text-[10px] sm:text-[11px] text-neutral-400">{p.title}</p>}
                 </div>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-1 text-center">
+              <div className="mt-2 sm:mt-3 grid grid-cols-3 gap-1 text-center">
                 <div>
-                  <p className="text-[10px] text-neutral-400">종목</p>
-                  <p className="text-sm font-bold tabular-nums text-ink">{s?.count || 0}</p>
+                  <p className="text-[9px] sm:text-[10px] text-neutral-400">종목</p>
+                  <p className="text-xs sm:text-sm font-bold tabular-nums text-ink">{s?.count || 0}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-neutral-400">매수</p>
-                  <p className="text-sm font-bold tabular-nums text-brand-500">{s?.buyCount || 0}</p>
+                  <p className="text-[9px] sm:text-[10px] text-neutral-400">매수</p>
+                  <p className="text-xs sm:text-sm font-bold tabular-nums text-brand-500">{s?.buyCount || 0}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-neutral-400">괴리율</p>
-                  <p className={`text-sm font-bold tabular-nums ${s?.avgGap ? (s.avgGap > 0 ? 'text-red-500' : 'text-blue-500') : 'text-neutral-300'}`}>
+                  <p className="text-[9px] sm:text-[10px] text-neutral-400">괴리율</p>
+                  <p className={`text-xs sm:text-sm font-bold tabular-nums ${s?.avgGap ? (s.avgGap > 0 ? 'text-red-500' : 'text-blue-500') : 'text-neutral-300'}`}>
                     {s?.avgGap ? `${s.avgGap > 0 ? '+' : ''}${s.avgGap}%` : '-'}
                   </p>
                 </div>
               </div>
               {s?.latestDate && (
-                <p className="mt-2 truncate text-[10px] text-neutral-400">최근 {s.latestDate}</p>
+                <p className="mt-1.5 sm:mt-2 truncate text-[9px] sm:text-[10px] text-neutral-400">최근 {s.latestDate}</p>
               )}
             </button>
           )
@@ -152,17 +152,17 @@ export default function AnalystPage() {
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className="overflow-hidden"
           >
-            <div className="mt-6">
-              <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="mt-4 sm:mt-6">
+              <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {(() => {
                     const p = profiles[selectedAnalyst]
                     return p?.avatar?.startsWith('data:')
-                      ? <img src={p.avatar} alt="" className="h-8 w-8 rounded-full object-cover ring-2 ring-brand-200" />
-                      : <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">{selectedAnalyst[0]}</div>
+                      ? <img src={p.avatar} alt="" className="h-7 w-7 sm:h-8 sm:w-8 rounded-full object-cover ring-2 ring-brand-200" />
+                      : <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-brand-500 text-xs font-bold text-white">{selectedAnalyst[0]}</div>
                   })()}
-                  <h2 className="text-lg font-bold text-ink">{selectedAnalyst}</h2>
-                  <span className="text-sm text-neutral-400">{analystEntries.length}개 종목</span>
+                  <h2 className="text-base sm:text-lg font-bold text-ink">{selectedAnalyst}</h2>
+                  <span className="text-xs sm:text-sm text-neutral-400">{analystEntries.length}개 종목</span>
                 </div>
                 <div className="relative">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
@@ -187,7 +187,7 @@ export default function AnalystPage() {
                 <>
                   {/* 데스크톱 테이블 */}
                   <div className="hidden overflow-x-auto rounded-xl border border-neutral-200 bg-white md:block">
-                    <table className="w-full text-sm">
+                    <table className="w-full min-w-[700px] text-sm">
                       <thead>
                         <tr className="border-b border-neutral-150 bg-neutral-50/60">
                           <th className="px-4 py-2.5 text-left text-xs font-semibold text-neutral-500">종목명</th>
@@ -249,33 +249,36 @@ export default function AnalystPage() {
                       const dTone = dueTone(daysLeft)
                       const gTone = e.gapRatio !== 0 ? gapTone(e.gapRatio) : undefined
                       return (
-                        <div key={e.ticker} className="rounded-xl border border-neutral-200 bg-white p-4">
+                        <div key={e.ticker} className="rounded-xl border border-neutral-200 bg-white p-3">
+                          {/* 헤더: 종목명 + 의견 */}
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0">
-                              <p className="font-semibold text-ink">{e.company} <span className="font-mono text-[11px] text-neutral-400">{e.ticker}</span></p>
-                              <p className="mt-0.5 truncate text-xs text-neutral-400">{e.title}</p>
+                              <p className="text-sm font-semibold text-ink">{e.company}</p>
+                              <p className="text-[11px] text-neutral-400">{e.ticker}</p>
                             </div>
-                            {e.opinion && <Badge tone={OPINION_TONE[e.opinion] ?? 'slate'}>{e.opinion}</Badge>}
-                          </div>
-                          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-left">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-neutral-400">목표</span>
-                              <span className="text-xs font-semibold tabular-nums text-ink">{e.targetPrice > 0 ? e.targetPrice.toLocaleString('ko-KR') : '-'}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-neutral-400">현재가</span>
-                              <span className="text-xs font-semibold tabular-nums text-neutral-600">{e.currentPrice > 0 ? e.currentPrice.toLocaleString('ko-KR') : '-'}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-neutral-400">괴리율</span>
-                              <span className="text-xs font-semibold">{gTone ? <Badge tone={gTone}>{formatPct(e.gapRatio)}</Badge> : '-'}</span>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] text-neutral-400">기한</span>
-                              <span className="text-xs">{e.nextDue ? <Badge tone={dTone}>{daysLeft <= 0 ? `+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</Badge> : '-'}</span>
+                            <div className="flex shrink-0 items-center gap-1.5">
+                              {e.opinion && <Badge tone={OPINION_TONE[e.opinion] ?? 'slate'}>{e.opinion}</Badge>}
+                              {e.nextDue && <Badge tone={dTone}>{daysLeft <= 0 ? `+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</Badge>}
                             </div>
                           </div>
-                          <p className="mt-2 text-[10px] text-neutral-400">발간 {e.lastUpdated}{e.analystFull !== e.analyst ? ` · ${e.analystFull}` : ''}</p>
+                          {/* 가격 정보 */}
+                          <div className="mt-2 flex items-center gap-3 text-xs">
+                            <span className="text-neutral-400">목표</span>
+                            <span className="font-semibold tabular-nums text-ink">{e.targetPrice > 0 ? e.targetPrice.toLocaleString('ko-KR') : '-'}</span>
+                            <span className="text-neutral-300">|</span>
+                            <span className="text-neutral-400">현재</span>
+                            <span className="font-semibold tabular-nums text-neutral-600">{e.currentPrice > 0 ? e.currentPrice.toLocaleString('ko-KR') : '-'}</span>
+                            {gTone && (
+                              <>
+                                <span className="text-neutral-300">|</span>
+                                <Badge tone={gTone}>{formatPct(e.gapRatio)}</Badge>
+                              </>
+                            )}
+                          </div>
+                          {/* 리포트 */}
+                          <p className="mt-1.5 truncate text-[11px] text-neutral-400">
+                            {e.lastUpdated} · {e.title}
+                          </p>
                         </div>
                       )
                     })}
@@ -284,7 +287,7 @@ export default function AnalystPage() {
               )}
 
               {analystEntries.length > 0 && (
-                <p className="mt-4 text-center text-xs text-neutral-400">현재가 · 괴리율은 대시보드 동기화 데이터 기준</p>
+                <p className="mt-3 sm:mt-4 text-center text-[10px] sm:text-xs text-neutral-400">현재가 · 괴리율은 대시보드 동기화 데이터 기준</p>
               )}
             </div>
           </motion.div>

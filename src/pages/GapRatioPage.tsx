@@ -114,14 +114,6 @@ export default function GapRatioPage() {
             </button>
           ))}
         </div>
-        <Button variant="ghost" onClick={() => {
-          if (confirm('괴리율 데이터를 초기화하시겠습니까? (페이지가 새로고침됩니다)')) {
-            try { localStorage.removeItem('shinhan-gap-ratio') } catch {}
-            window.location.reload()
-          }
-        }}>
-          초기화
-        </Button>
         {lastRefreshed && (
           <span className="text-xs text-ink-faint">
             마지막 갱신: {new Date(lastRefreshed).toLocaleString('ko-KR')}

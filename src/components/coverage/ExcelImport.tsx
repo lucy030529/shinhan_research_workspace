@@ -121,7 +121,7 @@ export default function ExcelImport({ onImport, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className="text-lg font-bold text-ink">엑셀 임포트</h2>
-        <p className="mt-1 text-xs text-ink-faint">
+        <p className="mt-1 text-xs text-neutral-500">
           필수 컬럼: 종목코드, 종목명, 애널리스트(담당), 최근업데이트(업데이트일)
         </p>
 
@@ -146,19 +146,19 @@ export default function ExcelImport({ onImport, onClose }: Props) {
 
         {preview.length > 0 && (
           <>
-            <div className="mt-4 max-h-64 overflow-auto rounded-lg border border-slate-200">
+            <div className="mt-4 max-h-64 overflow-auto rounded-lg border border-neutral-200">
               <table className="w-full text-xs">
-                <thead className="sticky top-0 bg-slate-50">
+                <thead className="sticky top-0 bg-neutral-100">
                   <tr>
-                    <th className="px-3 py-2 text-left font-medium text-ink-faint">종목코드</th>
-                    <th className="px-3 py-2 text-left font-medium text-ink-faint">종목명</th>
-                    <th className="px-3 py-2 text-left font-medium text-ink-faint">애널리스트</th>
-                    <th className="px-3 py-2 text-left font-medium text-ink-faint">업데이트일</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-500">종목코드</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-500">종목명</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-500">애널리스트</th>
+                    <th className="px-3 py-2 text-left font-medium text-neutral-500">업데이트일</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-neutral-150">
                   {preview.map((r, i) => (
-                    <tr key={i} className="hover:bg-slate-50">
+                    <tr key={i} className="hover:bg-neutral-100">
                       <td className="px-3 py-1.5 tabular-nums">{r.ticker}</td>
                       <td className="px-3 py-1.5">{r.name}</td>
                       <td className="px-3 py-1.5">{r.analyst}</td>
@@ -168,7 +168,7 @@ export default function ExcelImport({ onImport, onClose }: Props) {
                 </tbody>
               </table>
             </div>
-            <p className="mt-2 text-xs text-ink-faint">{preview.length}건 미리보기</p>
+            <p className="mt-2 text-xs text-neutral-500">{preview.length}건 미리보기</p>
           </>
         )}
 

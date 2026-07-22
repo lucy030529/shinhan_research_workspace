@@ -6,11 +6,15 @@ import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import CoveragePage from './pages/CoveragePage'
 import GapRatioPage from './pages/GapRatioPage'
-import DailyAgentPage from './pages/DailyAgentPage'
+import ErrorBoundary from './components/ErrorBoundary'
 import ReportsPage from './pages/ReportsPage'
 import ArchivePage from './pages/ArchivePage'
 import CalendarPage from './pages/CalendarPage'
 import TypoCheckPage from './pages/TypoCheckPage'
+import RegisterPage from './pages/RegisterPage'
+import AdminUsersPage from './pages/AdminUsersPage'
+import AccountPage from './pages/AccountPage'
+import IRCollectionPage from './pages/IRCollectionPage'
 
 export default function App() {
   return (
@@ -25,6 +29,14 @@ export default function App() {
         }
       />
       <Route
+        path="/register"
+        element={
+          <RequireGate>
+            <RegisterPage />
+          </RequireGate>
+        }
+      />
+      <Route
         element={
           <RequireAuth>
             <AppLayout />
@@ -33,12 +45,14 @@ export default function App() {
       >
         <Route path="/" element={<DashboardPage />} />
         <Route path="/coverage" element={<CoveragePage />} />
-        <Route path="/gap-ratio" element={<GapRatioPage />} />
-        <Route path="/daily" element={<DailyAgentPage />} />
+        <Route path="/gap-ratio" element={<ErrorBoundary><GapRatioPage /></ErrorBoundary>} />
+        <Route path="/ir" element={<IRCollectionPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/archive" element={<ArchivePage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/typo" element={<TypoCheckPage />} />
+        <Route path="/admin/users" element={<AdminUsersPage />} />
+        <Route path="/account" element={<AccountPage />} />
       </Route>
     </Routes>
   )

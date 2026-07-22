@@ -77,6 +77,7 @@ export default async (req: Request) => {
       .filter((r) => r.brokerName.includes('신한'))
       .slice(0, pageSize)
 
+    // 기본 리스트 매핑
     const items = shinhanReports.map((r) => ({
       id: String(r.researchId),
       title: r.title,
@@ -90,6 +91,43 @@ export default async (req: Request) => {
       opinion: '',
       pdfUrl: r.endUrl || '',
     }))
+
+    // 종목 코드가 있는 리포트만 상세 조회하여 목표주가 가져오기 (병렬, 5개씩)
+    const withTicker = items.filter((r) => r.ticker)
+    const BATCH = 5
+    for (let i = 0; i < withTicker.length; i += BATCH) {
+      const batch = withTicker.slice(i, i + BATCH)
+      const details = await Promise.allSettled(
+        batch.map(async (r) => {
+          try {
+            const resp = await fetch(
+              `https://m.stock.naver.com/api/research/company/${r.id}`,
+              { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } },
+            )
+            if (!resp.ok) return null
+            const data = await resp.json()
+            return {
+              id: r.id,
+              targetPrice: parseInt(String(data.researchContent?.prevGoalPrice || '0').replace(/,/g, ''), 10) || 0,
+              opinion: data.researchContent?.opinion || '',
+              pdfUrl: data.researchContent?.attachUrl || r.pdfUrl,
+            }
+          } catch {
+            return null
+          }
+        }),
+      )
+      for (const result of details) {
+        if (result.status !== 'fulfilled' || !result.value) continue
+        const d = result.value
+        const item = items.find((r) => r.id === d.id)
+        if (item) {
+          item.targetPrice = d.targetPrice
+          item.opinion = d.opinion
+          if (d.pdfUrl) item.pdfUrl = d.pdfUrl
+        }
+      }
+    }
 
     return new Response(JSON.stringify({ items, total: items.length, fetchedAt: new Date().toISOString() }), {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },

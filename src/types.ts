@@ -2,11 +2,16 @@
 
 export type Role = 'admin' | 'analyst'
 
+export type Title = '연구위원' | '수석연구원' | '선임연구원' | '연구원' | '인턴사원'
+
 export interface User {
   id: string
   name: string
   email: string
   role: Role
+  avatar?: string // base64 이미지 or 색상코드
+  title?: Title
+  department?: string // 소속
 }
 
 export interface CoverageItem {

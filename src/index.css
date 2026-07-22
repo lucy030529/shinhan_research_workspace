@@ -13,26 +13,29 @@ body,
 }
 
 body {
-  @apply bg-slate-50 text-ink antialiased;
+  @apply bg-neutral-100 text-ink antialiased;
 }
 
-/* 얇은 스크롤바 */
+/* Strapi-style 스크롤바 */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
+  scrollbar-color: #c0c0cf transparent;
 }
 *::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #c0c0cf;
   border-radius: 9999px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* 보고서 마크다운 렌더링 스타일 */
 .prose-report h1 {
-  @apply text-lg font-bold text-ink border-b-2 border-brand-600 pb-2 mt-6 mb-4;
+  @apply text-lg font-bold text-ink border-b-2 border-brand-500 pb-2 mt-6 mb-4;
 }
 .prose-report h1:first-child { @apply mt-0; }
 .prose-report h2 {
@@ -47,16 +50,16 @@ body {
   @apply w-full border-collapse my-3 text-xs;
 }
 .prose-report th {
-  @apply bg-ink text-white px-3 py-2 text-left text-xs font-semibold;
+  @apply bg-neutral-900 text-white px-3 py-2 text-left text-xs font-semibold;
 }
 .prose-report td {
-  @apply px-3 py-[7px] border-b border-slate-200;
+  @apply px-3 py-[7px] border-b border-neutral-200;
 }
 .prose-report tr:nth-child(even) td {
-  @apply bg-slate-50;
+  @apply bg-neutral-100;
 }
 .prose-report blockquote {
-  @apply border-l-[3px] border-brand-500 pl-4 py-3 my-3 bg-brand-50 rounded-r-lg text-sm;
+  @apply border-l-[3px] border-brand-500 pl-4 py-3 my-3 bg-brand-50 rounded-r text-sm;
 }
 .prose-report ul {
   @apply pl-5 my-2;

@@ -180,11 +180,11 @@ export default function ReportsPage() {
             <CardHeader title="1. 기본 정보" />
             <div className="p-5 space-y-4">
               <label className="block">
-                <span className="text-xs font-medium text-ink-faint">레포트 유형</span>
+                <span className="text-xs font-medium text-neutral-500">레포트 유형</span>
                 <select
                   value={reportType}
                   onChange={(e) => setReportType(e.target.value as ReportType)}
-                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="mt-1 block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 >
                   {REPORT_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>{t.label}</option>
@@ -194,34 +194,34 @@ export default function ReportsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <label className="block">
-                  <span className="text-xs font-medium text-ink-faint">기업명 <span className="text-ink-faint font-normal">(또는 섹터명)</span></span>
+                  <span className="text-xs font-medium text-neutral-500">기업명 <span className="text-neutral-500 font-normal">(또는 섹터명)</span></span>
                   <input
                     type="text"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     placeholder="예: HD현대중공업"
-                    className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    className="mt-1 block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                 </label>
                 <label className="block">
-                  <span className="text-xs font-medium text-ink-faint">분기</span>
+                  <span className="text-xs font-medium text-neutral-500">분기</span>
                   <input
                     type="text"
                     value={quarter}
                     onChange={(e) => setQuarter(e.target.value)}
                     placeholder="예: 1Q26"
-                    className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    className="mt-1 block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                 </label>
               </div>
 
               <label className="block">
-                <span className="text-xs font-medium text-ink-faint">발간일</span>
+                <span className="text-xs font-medium text-neutral-500">발간일</span>
                 <input
                   type="date"
                   value={pubDate}
                   onChange={(e) => setPubDate(e.target.value)}
-                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="mt-1 block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
               </label>
             </div>
@@ -233,17 +233,17 @@ export default function ReportsPage() {
             <div className="p-5 space-y-4">
               {/* 파일 업로드 */}
               <div>
-                <span className="text-xs font-medium text-ink-faint">파일 업로드 <span className="font-normal">(TXT, XLSX, PDF, DOCX)</span></span>
+                <span className="text-xs font-medium text-neutral-500">파일 업로드 <span className="font-normal">(TXT, XLSX, PDF, DOCX)</span></span>
                 <div
-                  className="mt-1 rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-colors"
+                  className="mt-1 rounded-lg border-2 border-dashed border-neutral-200 bg-neutral-100 p-6 text-center cursor-pointer hover:border-brand-500 hover:bg-brand-50/30 transition-colors"
                   onClick={() => fileInputRef.current?.click()}
                   onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('border-brand-500') }}
                   onDragLeave={(e) => e.currentTarget.classList.remove('border-brand-500')}
                   onDrop={(e) => { e.preventDefault(); e.currentTarget.classList.remove('border-brand-500'); addFiles(e.dataTransfer.files) }}
                 >
                   <p className="text-2xl text-slate-300">+</p>
-                  <p className="mt-1 text-xs text-ink-faint"><strong className="text-brand-600">클릭</strong>하거나 파일을 <strong className="text-brand-600">드래그</strong>하세요</p>
-                  <p className="text-xs text-ink-faint mt-0.5">실적발표 스크립트, IR자료, 컨콜전문 등</p>
+                  <p className="mt-1 text-xs text-neutral-500"><strong className="text-brand-500">클릭</strong>하거나 파일을 <strong className="text-brand-500">드래그</strong>하세요</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">실적발표 스크립트, IR자료, 컨콜전문 등</p>
                 </div>
                 <input
                   ref={fileInputRef}
@@ -256,12 +256,12 @@ export default function ReportsPage() {
                 {files.length > 0 && (
                   <div className="mt-2 space-y-1">
                     {files.map((f, i) => (
-                      <div key={f.name + f.size} className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-xs">
+                      <div key={f.name + f.size} className="flex items-center justify-between rounded-md bg-neutral-100 px-3 py-2 text-xs">
                         <div>
                           <span className="font-medium text-ink">{f.name}</span>
-                          <span className="ml-2 text-ink-faint">{formatFileSize(f.size)}</span>
+                          <span className="ml-2 text-neutral-500">{formatFileSize(f.size)}</span>
                         </div>
-                        <button className="text-red-500 hover:text-red-700" onClick={() => removeFile(i)}>x</button>
+                        <button className="text-danger-600 hover:text-red-700" onClick={() => removeFile(i)}>x</button>
                       </div>
                     ))}
                   </div>
@@ -270,25 +270,25 @@ export default function ReportsPage() {
 
               {/* 스크립트 직접 입력 */}
               <label className="block">
-                <span className="text-xs font-medium text-ink-faint">스크립트 직접 입력 <span className="font-normal">(선택)</span></span>
+                <span className="text-xs font-medium text-neutral-500">스크립트 직접 입력 <span className="font-normal">(선택)</span></span>
                 <textarea
                   value={scriptText}
                   onChange={(e) => setScriptText(e.target.value)}
                   placeholder="실적발표 스크립트 또는 컨퍼런스콜 전문을 붙여넣으세요..."
                   rows={8}
-                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 leading-relaxed font-mono"
+                  className="mt-1 block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 leading-relaxed font-mono"
                 />
               </label>
 
               {/* 추가 메모 */}
               <label className="block">
-                <span className="text-xs font-medium text-ink-faint">추가 메모 <span className="font-normal">(선택)</span></span>
+                <span className="text-xs font-medium text-neutral-500">추가 메모 <span className="font-normal">(선택)</span></span>
                 <textarea
                   value={extraNotes}
                   onChange={(e) => setExtraNotes(e.target.value)}
                   placeholder="특별히 다뤄야 할 이슈, 경쟁사 비교 포인트 등..."
                   rows={3}
-                  className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="mt-1 block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
               </label>
 
@@ -301,7 +301,7 @@ export default function ReportsPage() {
               </Button>
 
               <button
-                className="w-full text-xs text-ink-faint hover:text-brand-600 hover:underline"
+                className="w-full text-xs text-neutral-500 hover:text-brand-500 hover:underline"
                 onClick={handleViewPrompt}
               >
                 {showPrompt ? '시스템 프롬프트 숨기기' : '시스템 프롬프트 보기'}
@@ -314,7 +314,7 @@ export default function ReportsPage() {
             <Card>
               <CardHeader title="시스템 프롬프트" action={<Badge tone="brand">{typeInfo.label}</Badge>} />
               <div className="p-4 max-h-64 overflow-auto">
-                <pre className="text-xs text-ink-soft whitespace-pre-wrap font-mono leading-relaxed">{prompt.system}</pre>
+                <pre className="text-xs text-neutral-600 whitespace-pre-wrap font-mono leading-relaxed">{prompt.system}</pre>
               </div>
             </Card>
           )}
@@ -326,7 +326,7 @@ export default function ReportsPage() {
             <CardHeader
               title="생성 결과"
               action={
-                <span className="text-xs text-ink-faint">
+                <span className="text-xs text-neutral-500">
                   {status === 'generating' && '생성 중...'}
                   {status === 'done' && '완료'}
                   {status === 'error' && '오류'}
@@ -335,7 +335,7 @@ export default function ReportsPage() {
             />
             <div ref={outputRef} className="p-6 min-h-[400px] max-h-[calc(100vh-200px)] overflow-auto">
               {status === 'idle' && (
-                <div className="flex flex-col items-center justify-center h-[350px] text-ink-faint text-center">
+                <div className="flex flex-col items-center justify-center h-[350px] text-neutral-500 text-center">
                   <p className="text-4xl opacity-20 mb-4">&#9998;</p>
                   <p className="text-sm">
                     좌측에 자료를 입력하고<br />
@@ -344,8 +344,8 @@ export default function ReportsPage() {
                 </div>
               )}
               {status === 'generating' && !rawMarkdown && (
-                <div className="flex items-center gap-2 text-sm text-ink-soft">
-                  <span className="inline-block w-4 h-4 border-2 border-slate-300 border-t-brand-600 rounded-full animate-spin" />
+                <div className="flex items-center gap-2 text-sm text-neutral-600">
+                  <span className="inline-block w-4 h-4 border-2 border-neutral-200 border-t-brand-600 rounded-full animate-spin" />
                   Claude API 호출 중...
                 </div>
               )}
@@ -362,8 +362,8 @@ export default function ReportsPage() {
 
             {/* 하단 툴바 */}
             {status === 'done' && rawMarkdown && (
-              <div className="flex gap-2 border-t border-slate-100 px-5 py-3">
-                <button className="rounded-md border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-brand-50 hover:text-brand-600 hover:border-brand-300 transition-colors" onClick={handleCopy}>
+              <div className="flex gap-2 border-t border-neutral-150 px-5 py-3">
+                <button className="rounded-md border border-neutral-200 bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-brand-50 hover:text-brand-500 hover:border-brand-300 transition-colors" onClick={handleCopy}>
                   복사
                 </button>
                 <button className="rounded-md bg-brand-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-700 transition-colors" onClick={handleDownloadDocx}>
@@ -374,7 +374,7 @@ export default function ReportsPage() {
                     PDF 다운로드
                   </button>
                 )}
-                <button className="rounded-md border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-medium text-ink-soft hover:bg-brand-50 hover:text-brand-600 hover:border-brand-300 transition-colors" onClick={handleDownloadTxt}>
+                <button className="rounded-md border border-neutral-200 bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-600 hover:bg-brand-50 hover:text-brand-500 hover:border-brand-300 transition-colors" onClick={handleDownloadTxt}>
                   TXT 다운로드
                 </button>
               </div>

@@ -36,7 +36,7 @@ export default function GapRatioModal({ initial, onSave, onClose }: Props) {
         </div>
 
         {valid && (
-          <p className="mt-3 text-sm text-ink-soft">
+          <p className="mt-3 text-sm text-neutral-600">
             괴리율: {((tp - cp) / cp * 100).toFixed(1)}%
           </p>
         )}
@@ -70,13 +70,13 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium text-ink-faint">{label}</span>
+      <span className="text-xs font-medium text-neutral-500">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="mt-1 block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="mt-1 block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
       />
     </label>
   )

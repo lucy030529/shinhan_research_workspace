@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Badge, Button, Card, CardHeader, PageHeader } from '../components/ui'
 import { useTasks } from '../store/tasks'
-import { useAuth } from '../store/auth'
+import { useAuth, fetchProfiles } from '../store/auth'
 import TaskModal from '../components/daily/TaskModal'
 import type { DailyTask, TaskFrequency, TaskStatus } from '../types'
 
-const freqLabel: Record<string, string> = { daily: '매일', weekly: '매주', once: '단발' }
+const freqLabel: Record<string, string> = { daily: '매일', weekly: '매주', once: '스팟' }
 const statusTone: Record<string, 'slate' | 'brand' | 'green'> = {
   todo: 'slate',
   doing: 'brand',
@@ -17,8 +17,12 @@ const statusCycle: TaskStatus[] = ['todo', 'doing', 'done']
 export default function DailyAgentPage() {
   const { items, add, update, setStatus, remove } = useTasks()
   const user = useAuth((s) => s.user)
+  const isAdmin = user?.role === 'admin'
   const [modal, setModal] = useState<'add' | DailyTask | null>(null)
   const [filter, setFilter] = useState<'all' | TaskStatus>('all')
+  const [profiles, setProfiles] = useState<Record<string, { name: string; avatar?: string; title?: string }>>({})
+
+  useEffect(() => { fetchProfiles().then(setProfiles) }, [])
 
   const filtered = filter === 'all' ? items : items.filter((t) => t.status === filter)
   const sorted = [...filtered].sort((a, b) => {
@@ -63,15 +67,15 @@ export default function DailyAgentPage() {
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <Button onClick={() => setModal('add')}>+ 업무 등록</Button>
-        <div className="flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
+        <div className="flex gap-1 rounded-lg border border-neutral-200 bg-white p-1">
           {(['all', 'todo', 'doing', 'done'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 filter === f
-                  ? 'bg-brand-600 text-white'
-                  : 'text-ink-soft hover:bg-slate-100'
+                  ? 'bg-brand-500 text-white'
+                  : 'text-neutral-600 hover:bg-neutral-100'
               }`}
             >
               {f === 'all' ? '전체' : statusLabel[f]} ({counts[f]})
@@ -82,7 +86,7 @@ export default function DailyAgentPage() {
 
       <Card>
         <CardHeader title={`업무 목록 (${sorted.length}건)`} />
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-neutral-150">
           {sorted.map((t) => (
             <div key={t.id} className="flex items-center justify-between px-5 py-3">
               <div className="flex items-center gap-3">
@@ -93,34 +97,49 @@ export default function DailyAgentPage() {
                 >
                   <Badge tone={statusTone[t.status]}>{statusLabel[t.status]}</Badge>
                 </button>
+                {(() => {
+                  const p = profiles[t.owner]
+                  return p?.avatar?.startsWith('data:') ? (
+                    <img src={p.avatar} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-neutral-200" />
+                  ) : (
+                    <div
+                      className="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold text-white"
+                      style={{ backgroundColor: p?.avatar?.startsWith('#') ? p.avatar : '#94a3b8' }}
+                    >
+                      {t.owner[0] || '?'}
+                    </div>
+                  )
+                })()}
                 <div>
-                  <p className={`text-sm font-medium ${t.status === 'done' ? 'text-ink-faint line-through' : 'text-ink'}`}>
+                  <p className={`text-sm font-medium ${t.status === 'done' ? 'text-neutral-500 line-through' : 'text-ink'}`}>
                     {t.title}
                   </p>
-                  <p className="text-xs text-ink-faint">
-                    {t.owner} · {freqLabel[t.frequency]} · 마감 {t.due}
+                  <p className="text-xs text-neutral-500">
+                    {t.owner}{profiles[t.owner]?.title ? ` ${profiles[t.owner].title}` : ''} · {freqLabel[t.frequency]} · 마감 {t.due}
                     {t.createdBy !== t.owner && ` · 등록: ${t.createdBy}`}
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  className="text-xs text-brand-600 hover:underline"
-                  onClick={() => setModal(t)}
-                >
-                  수정
-                </button>
-                <button
-                  className="text-xs text-red-500 hover:underline"
-                  onClick={() => handleDelete(t.id, t.title)}
-                >
-                  삭제
-                </button>
-              </div>
+              {(isAdmin || t.owner === user?.name || t.createdBy === user?.name) && (
+                <div className="flex gap-2">
+                  <button
+                    className="text-xs text-brand-500 hover:underline"
+                    onClick={() => setModal(t)}
+                  >
+                    수정
+                  </button>
+                  <button
+                    className="text-xs text-danger-600 hover:underline"
+                    onClick={() => handleDelete(t.id, t.title)}
+                  >
+                    삭제
+                  </button>
+                </div>
+              )}
             </div>
           ))}
           {sorted.length === 0 && (
-            <p className="px-5 py-8 text-center text-sm text-ink-faint">
+            <p className="px-5 py-8 text-center text-sm text-neutral-500">
               {filter === 'all' ? '등록된 업무가 없습니다.' : `${statusLabel[filter]} 상태 업무가 없습니다.`}
             </p>
           )}

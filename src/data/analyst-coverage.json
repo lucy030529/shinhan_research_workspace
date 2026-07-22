@@ -1196,6 +1196,16 @@
       "ticker": "011200"
     },
     {
+      "company": "CJ대한통운",
+      "analyst": "최민기",
+      "analystFull": "최민기",
+      "lastUpdated": "2026-07-22",
+      "opinion": "매수",
+      "targetPrice": 0,
+      "title": "",
+      "ticker": "000120"
+    },
+    {
       "company": "두산에너빌리티",
       "analyst": "한승훈",
       "analystFull": "한승훈",

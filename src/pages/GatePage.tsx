@@ -29,7 +29,7 @@ export default function GatePage() {
         </div>
         <form onSubmit={submit} className="rounded-2xl bg-white p-8 shadow-pop">
           <h1 className="text-lg font-bold text-ink">보안 접근</h1>
-          <p className="mt-1 text-sm text-ink-soft">
+          <p className="mt-1 text-sm text-neutral-600">
             내부 리서치 워크스페이스입니다. 접근 비밀번호를 입력하세요.
           </p>
           <input
@@ -41,9 +41,9 @@ export default function GatePage() {
             }}
             placeholder="사이트 비밀번호"
             autoFocus
-            className="mt-6 w-full rounded-lg border border-slate-300 px-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            className="mt-6 w-full rounded-lg border border-neutral-200 px-4 py-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+          {error && <p className="mt-2 text-sm text-danger-600">{error}</p>}
           <Button type="submit" className="mt-4 w-full">
             입장
           </Button>

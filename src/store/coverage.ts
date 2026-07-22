@@ -16,6 +16,25 @@ interface CoverageState {
   loadAnalystCoverage: () => number
 }
 
+// 엑셀에 없지만 API에서 들어오는 종목의 담당 애널리스트 매핑 (수동 추가용)
+const ANALYST_OVERRIDES: Record<string, string> = {
+  '017670': '김아람',   // SK텔레콤
+  '294870': '김선미',   // IPARK현대산업개발
+}
+
+// 엑셀 데이터에서 ticker→analyst 매핑을 빌드
+function buildAnalystMap(): Map<string, string> {
+  const map = new Map<string, string>()
+  for (const e of analystCoverageData.coverage) {
+    const ticker = (e as Record<string, unknown>).ticker as string
+    if (ticker) map.set(ticker, e.analyst)
+  }
+  for (const [ticker, analyst] of Object.entries(ANALYST_OVERRIDES)) {
+    map.set(ticker, analyst)
+  }
+  return map
+}
+
 let seq = Date.now()
 function nextId() {
   return 'c' + (++seq)
@@ -73,17 +92,20 @@ export const useCoverage = create<CoverageState>()(
             }
             return c
           })
-          // 새 종목 추가
+          // 새 종목 추가 (엑셀 데이터 또는 오버라이드에 있는 종목)
+          const analystMap = buildAnalystMap()
           const newItems: CoverageItem[] = []
           for (const r of reports) {
             if (!r.ticker || existingTickers.has(r.ticker)) continue
+            const analyst = analystMap.get(r.ticker)
+            if (!analyst) continue // 2부 소속 아니면 무시
             existingTickers.add(r.ticker)
             updated++
             newItems.push({
               id: nextId(),
               ticker: r.ticker,
               name: r.name,
-              analyst: '신한투자증권',
+              analyst,
               lastUpdated: r.date,
               nextDue: addSixMonths(r.date),
             })
@@ -136,7 +158,7 @@ export const useCoverage = create<CoverageState>()(
     }),
     {
       name: 'shinhan-coverage',
-      version: 4,
+      version: 5,
       migrate: () => ({ items: [], initialized: false }),
     },
   ),

@@ -6,7 +6,6 @@ import type { CoverageItem, DailyTask, GapRatioItem, User } from '../types'
 // ⚠️ 실제 운영에서는 서버측 인증 + 해시 저장으로 교체해야 합니다.
 export const MOCK_USERS: (User & { password: string })[] = [
   { id: 'u1', name: '관리자', email: 'admin@shinhan.com', role: 'admin', password: 'admin1234' },
-  { id: 'u2', name: '김민지', email: 'minji@shinhan.com', role: 'analyst', password: 'analyst1234' },
 ]
 
 export const MOCK_COVERAGE: CoverageItem[] = [

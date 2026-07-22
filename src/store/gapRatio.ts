@@ -21,7 +21,10 @@ interface GapRatioState {
 let seq = Date.now()
 
 function calcGap(target: number, current: number) {
-  return +((target - current) / current * 100).toFixed(1)
+  if (!target || !current || !isFinite(target) || !isFinite(current) || current <= 0) return 0
+  const result = (target - current) / current * 100
+  if (!isFinite(result)) return 0
+  return +result.toFixed(1)
 }
 
 export const useGapRatio = create<GapRatioState>()(
@@ -68,7 +71,6 @@ export const useGapRatio = create<GapRatioState>()(
         let updated = 0
         set((s) => {
           const now = new Date().toISOString()
-          const existingTickers = new Set(s.items.map((g) => g.ticker))
           // 기존 항목 갱신
           const updatedItems = s.items.map((g) => {
             const report = reports.find((r) => r.ticker === g.ticker && r.targetPrice > 0)
@@ -81,12 +83,12 @@ export const useGapRatio = create<GapRatioState>()(
               updatedAt: now,
             }
           })
-          // 새 종목 추가 (목표주가가 있는 경우만)
+          // 신한 리포트의 새 종목도 추가 (목표주가가 있는 경우)
+          const existingTickers = new Set(updatedItems.map((g) => g.ticker))
           const newItems: GapRatioItem[] = []
           for (const r of reports) {
             if (!r.ticker || existingTickers.has(r.ticker) || r.targetPrice <= 0) continue
             existingTickers.add(r.ticker)
-            updated++
             newItems.push({
               id: 'g' + (++seq),
               ticker: r.ticker,
@@ -96,6 +98,7 @@ export const useGapRatio = create<GapRatioState>()(
               gapRatio: 0,
               updatedAt: now,
             })
+            updated++
           }
           return { items: [...updatedItems, ...newItems] }
         })
@@ -150,7 +153,7 @@ export const useGapRatio = create<GapRatioState>()(
     }),
     {
       name: 'shinhan-gap-ratio',
-      version: 4,
+      version: 6,
       migrate: () => ({ items: [], lastRefreshed: null }),
     },
   ),

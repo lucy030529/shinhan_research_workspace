@@ -15,7 +15,7 @@ export default function CoveragePage() {
   const [showImport, setShowImport] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [analystFilter, setAnalystFilter] = useState<string>('')
-  const [pageSize, setPageSize] = useState(30)
+  const [pageSize, setPageSize] = useState(15)
   const [page, setPage] = useState(1)
 
   const analysts = [...new Set(items.map((c) => c.analyst))].sort()
@@ -104,7 +104,7 @@ export default function CoveragePage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-neutral-150 text-left text-xs text-neutral-500">
+              <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
                 <th className="px-5 py-3 font-medium">종목코드</th>
                 <th className="px-5 py-3 font-medium">종목명</th>
                 <th className="px-5 py-3 font-medium">담당 애널리스트</th>
@@ -116,7 +116,7 @@ export default function CoveragePage() {
             </thead>
             <tbody className="divide-y divide-neutral-150">
               {pagedRows.map((c) => (
-                <tr key={c.id} className="hover:bg-neutral-100">
+                <tr key={c.id} className="hover:bg-neutral-100 text-center">
                   <td className="px-5 py-3 tabular-nums text-neutral-600">{c.ticker}</td>
                   <td className="px-5 py-3 font-medium text-ink">{c.name}</td>
                   <td className="px-5 py-3 text-neutral-600">{c.analyst}</td>
@@ -129,7 +129,7 @@ export default function CoveragePage() {
                   </td>
                   {isAdmin && (
                     <td className="px-5 py-3">
-                      <div className="flex gap-2">
+                      <div className="flex justify-center gap-2">
                         <button
                           className="text-xs text-brand-500 hover:underline"
                           onClick={() => setModal(c)}

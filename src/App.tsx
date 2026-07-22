@@ -14,7 +14,7 @@ import TypoCheckPage from './pages/TypoCheckPage'
 import RegisterPage from './pages/RegisterPage'
 import AdminUsersPage from './pages/AdminUsersPage'
 import AccountPage from './pages/AccountPage'
-import IRCollectionPage from './pages/IRCollectionPage'
+// import IRCollectionPage from './pages/IRCollectionPage'
 
 export default function App() {
   return (
@@ -46,7 +46,6 @@ export default function App() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/coverage" element={<CoveragePage />} />
         <Route path="/gap-ratio" element={<ErrorBoundary><GapRatioPage /></ErrorBoundary>} />
-        <Route path="/ir" element={<IRCollectionPage />} />
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/archive" element={<ArchivePage />} />
         <Route path="/calendar" element={<CalendarPage />} />

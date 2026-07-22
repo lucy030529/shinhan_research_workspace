@@ -304,57 +304,26 @@ export default function CalendarPage() {
             const barLaneCount = bars.length > 0 ? Math.max(...bars.map((b) => b.lane)) + 1 : 0
 
             return (
-              <div key={weekIdx} className="relative">
-                {/* 기간 일정 바 영역 */}
-                {barLaneCount > 0 && (
-                  <div className="grid grid-cols-7" style={{ height: barLaneCount * 20 }}>
-                    {/* 배경 셀 보더 */}
-                    {week.map((cell, colIdx) => (
-                      <div key={colIdx} className={`border-r border-neutral-150 ${!cell.isCurrentMonth ? 'bg-neutral-100/50' : ''}`} />
-                    ))}
-                    {/* 바 오버레이 */}
-                    {bars.map((bar) => {
-                      const leftPct = (bar.startCol / 7) * 100
-                      const widthPct = (bar.span / 7) * 100
-                      return (
-                        <div
-                          key={bar.ev.id + '-' + weekIdx}
-                          className={`absolute z-10 truncate px-1.5 text-[10px] font-medium leading-[18px] ${COLOR_BAR[bar.ev.color]} ${
-                            bar.isStart ? 'rounded-l' : ''
-                          } ${bar.isEnd ? 'rounded-r' : ''}`}
-                          style={{
-                            top: bar.lane * 20 + 1,
-                            left: `calc(${leftPct}% + 2px)`,
-                            width: `calc(${widthPct}% - 4px)`,
-                            height: 18,
-                          }}
-                          title={`${bar.ev.title} (${formatDateRange(bar.ev)})`}
-                        >
-                          {bar.isStart ? (bar.ev.isDepartment ? '★ ' : '') + bar.ev.title : ''}
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {/* 날짜 셀 */}
+              <div key={weekIdx}>
+                {/* 날짜 셀 (숫자 + 일정 모두 포함) */}
                 <div className="grid grid-cols-7">
                   {week.map((cell, colIdx) => {
                     const isToday = cell.date === todayStr
                     const isSelected = cell.date === selectedDate
                     const dayOfWeek = colIdx
-                    // 단일 일정만 (기간 일정은 바로 표시)
                     const singleEvents = events.filter((ev) => !isMultiDay(ev) && ev.date === cell.date)
+                    const allEvents = [...singleEvents]
 
                     return (
                       <div
                         key={cell.date}
                         onClick={() => handleCellClick(cell.date)}
-                        className={`min-h-[60px] cursor-pointer border-b border-r border-neutral-150 p-1.5 transition-colors ${
+                        className={`min-h-[80px] cursor-pointer border-b border-r border-neutral-150 p-1.5 transition-colors ${
                           !cell.isCurrentMonth ? 'bg-neutral-100/50' : ''
                         } ${isSelected ? 'bg-blue-50 ring-1 ring-inset ring-blue-300' : 'hover:bg-neutral-100'}`}
                       >
-                        <div className={`mb-0.5 text-xs font-medium ${
+                        {/* 날짜 숫자 */}
+                        <div className={`mb-1 text-xs font-medium ${
                           isToday
                             ? 'inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white'
                             : !cell.isCurrentMonth
@@ -365,8 +334,9 @@ export default function CalendarPage() {
                         }`}>
                           {cell.day}
                         </div>
+                        {/* 일정들 (숫자 아래) */}
                         <div className="space-y-0.5">
-                          {singleEvents.slice(0, 3).map((ev) => (
+                          {allEvents.slice(0, 3).map((ev) => (
                             <div
                               key={ev.id}
                               className={`truncate rounded px-1 py-0.5 text-[10px] font-medium leading-tight border ${COLOR_BG[ev.color]} ${ev.isDepartment ? 'ring-1 ring-brand-300' : ''}`}
@@ -375,14 +345,44 @@ export default function CalendarPage() {
                               {ev.isDepartment ? '★ ' : ''}{ev.time ? `${ev.time} ` : ''}{ev.title}
                             </div>
                           ))}
-                          {singleEvents.length > 3 && (
-                            <div className="text-[10px] text-neutral-500 px-1">+{singleEvents.length - 3}건</div>
+                          {allEvents.length > 3 && (
+                            <div className="text-[10px] text-neutral-500 px-1">+{allEvents.length - 3}건</div>
                           )}
                         </div>
                       </div>
                     )
                   })}
                 </div>
+
+                {/* 기간 일정 바 (날짜 아래) */}
+                {barLaneCount > 0 && (
+                  <div className="relative grid grid-cols-7 border-b border-neutral-150 bg-neutral-100/30" style={{ height: barLaneCount * 22 + 4 }}>
+                    {week.map((_, colIdx) => (
+                      <div key={colIdx} className="border-r border-neutral-150" />
+                    ))}
+                    {bars.map((bar) => {
+                      const leftPct = (bar.startCol / 7) * 100
+                      const widthPct = (bar.span / 7) * 100
+                      return (
+                        <div
+                          key={bar.ev.id + '-' + weekIdx}
+                          className={`absolute z-10 truncate px-1.5 text-[10px] font-medium leading-[20px] ${COLOR_BAR[bar.ev.color]} ${
+                            bar.isStart ? 'rounded-l' : ''
+                          } ${bar.isEnd ? 'rounded-r' : ''}`}
+                          style={{
+                            top: bar.lane * 22 + 2,
+                            left: `calc(${leftPct}% + 2px)`,
+                            width: `calc(${widthPct}% - 4px)`,
+                            height: 20,
+                          }}
+                          title={`${bar.ev.title} (${formatDateRange(bar.ev)})`}
+                        >
+                          {bar.isStart ? (bar.ev.isDepartment ? '★ ' : '') + bar.ev.title : ''}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )
           })}

@@ -296,6 +296,26 @@
       "ticker": "030200"
     },
     {
+      "company": "LG유플러스",
+      "analyst": "김아람",
+      "analystFull": "김아람",
+      "lastUpdated": "2026-07-13",
+      "opinion": "매수",
+      "targetPrice": 14000,
+      "title": "비용 효율화 지속",
+      "ticker": "032640"
+    },
+    {
+      "company": "SK텔레콤",
+      "analyst": "김아람",
+      "analystFull": "김아람",
+      "lastUpdated": "2026-07-13",
+      "opinion": "매수",
+      "targetPrice": 80000,
+      "title": "AI 인프라 투자 본격화",
+      "ticker": "017670"
+    },
+    {
       "company": "RFHIC",
       "analyst": "김아람",
       "analystFull": "김아람",

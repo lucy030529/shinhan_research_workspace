@@ -18,7 +18,6 @@ interface CoverageState {
 
 // 엑셀에 없지만 API에서 들어오는 종목의 담당 애널리스트 매핑 (수동 추가용)
 const ANALYST_OVERRIDES: Record<string, string> = {
-  '017670': '김아람',   // SK텔레콤
   '294870': '김선미',   // IPARK현대산업개발
 }
 

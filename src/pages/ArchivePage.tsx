@@ -18,6 +18,7 @@ export default function ArchivePage() {
   const [tab, setTab] = useState<Category>('all')
   const [search, setSearch] = useState('')
   const [pageSize, setPageSize] = useState<number>(15)
+  const [page, setPage] = useState(1)
   const [dartItems, setDartItems] = useState<DartItem[]>([])
   const [shinhanReports, setShinhanReports] = useState<ShinhanReport[]>([])
   const [loading, setLoading] = useState(false)
@@ -60,7 +61,10 @@ export default function ArchivePage() {
       )
     })
     .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, pageSize)
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const safePage = Math.min(page, totalPages)
+  const pagedItems = filtered.slice((safePage - 1) * pageSize, safePage * pageSize)
 
   const counts = {
     all: allItems.length,
@@ -104,7 +108,7 @@ export default function ArchivePage() {
             return (
               <button
                 key={c}
-                onClick={() => setTab(c)}
+                onClick={() => { setTab(c); setPage(1) }}
                 className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                   tab === c ? 'bg-brand-600 text-white' : 'text-neutral-600 hover:bg-neutral-100'
                 }`}
@@ -117,7 +121,7 @@ export default function ArchivePage() {
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           placeholder="종목명, 코드, 제목 검색..."
           className="w-full sm:w-auto rounded-lg border border-neutral-200 px-3 py-1.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
@@ -125,12 +129,12 @@ export default function ArchivePage() {
           {PAGE_SIZES.map((s) => (
             <button
               key={s}
-              onClick={() => setPageSize(s)}
+              onClick={() => { setPageSize(s); setPage(1) }}
               className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                 pageSize === s ? 'bg-brand-600 text-white' : 'text-neutral-600 hover:bg-neutral-100'
               }`}
             >
-              {s}개
+              {s}건
             </button>
           ))}
         </div>
@@ -145,7 +149,7 @@ export default function ArchivePage() {
       <Card>
         <CardHeader title={`자료 목록 (${filtered.length}건)`} />
         <div className="divide-y divide-neutral-150">
-          {filtered.map((item) => (
+          {pagedItems.map((item) => (
             <div key={item.id} className="flex items-start sm:items-center justify-between gap-2 px-4 sm:px-5 py-3">
               <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0">
                 <Badge tone={TONE_MAP[item.category]}>
@@ -183,6 +187,33 @@ export default function ArchivePage() {
             </div>
           )}
         </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-1 border-t border-neutral-150 px-5 py-3">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+              className="rounded px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40"
+            >
+              이전
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`rounded px-2.5 py-1.5 text-xs font-medium transition-colors ${p === safePage ? 'bg-brand-500 text-white' : 'text-neutral-600 hover:bg-neutral-100'}`}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+              className="rounded px-2.5 py-1.5 text-xs font-medium text-neutral-600 hover:bg-neutral-100 disabled:opacity-40"
+            >
+              다음
+            </button>
+          </div>
+        )}
       </Card>
 
       <p className="mt-4 text-xs text-neutral-500">

@@ -4,7 +4,11 @@ import { checkTypos, type TypoMatch } from '../lib/typoRules'
 
 const SAMPLE_TEXT = `삼성전자의 2Q26 영업이익율은 전년 대비 개선될 것으로 보여집니다. 매출 성장율은 7.5%로 상승세를 보이고 있으며, 수익율 개선이 전망되어집니다.
 
-SK하이닉스는 HBM4 양산 효과로 몇일 내 실적 발표가 예상됩니다. 배당율도 상향 조정될 것으로 판단되어집니다.`
+SK하이닉스는 HBM4 양산 효과로 몇일 내 실적 발표가 예상됩니다. 배당율도 상향 조정될 것으로 판단되어집니다.
+
+가동율 향상과 함께 영업이이익 증가가 확인되었으며, 목표주까 상향 가능성이 있습니다. 에널리스트 컨센선스 대비 실적이 상회했습니다.`
+
+const NAVER_CHUNK_LIMIT = 500
 
 async function apiSpellCheck(text: string): Promise<TypoMatch[]> {
   try {
@@ -27,8 +31,47 @@ async function apiSpellCheck(text: string): Promise<TypoMatch[]> {
   }
 }
 
+// 문장/줄 단위로 청크 분할 (단어 중간 잘림 방지)
+function splitChunks(text: string, limit: number): { chunk: string; offset: number }[] {
+  const chunks: { chunk: string; offset: number }[] = []
+  let start = 0
+
+  while (start < text.length) {
+    if (start + limit >= text.length) {
+      chunks.push({ chunk: text.slice(start), offset: start })
+      break
+    }
+    // limit 이내에서 마지막 줄바꿈 또는 마침표+공백, 또는 공백 위치를 찾아 분할
+    let splitAt = -1
+    const searchEnd = Math.min(start + limit, text.length)
+    const segment = text.slice(start, searchEnd)
+
+    // 우선순위: 줄바꿈 > 마침표+공백 > 공백
+    const lastNewline = segment.lastIndexOf('\n')
+    if (lastNewline > limit * 0.3) {
+      splitAt = lastNewline + 1
+    } else {
+      const lastPeriod = segment.lastIndexOf('. ')
+      if (lastPeriod > limit * 0.3) {
+        splitAt = lastPeriod + 2
+      } else {
+        const lastSpace = segment.lastIndexOf(' ')
+        if (lastSpace > limit * 0.3) {
+          splitAt = lastSpace + 1
+        } else {
+          splitAt = limit
+        }
+      }
+    }
+
+    chunks.push({ chunk: text.slice(start, start + splitAt), offset: start })
+    start += splitAt
+  }
+
+  return chunks
+}
+
 async function extractDocxText(file: File): Promise<string> {
-  // mammoth.js CDN 동적 로드
   if (!(window as any).mammoth) {
     await new Promise<void>((resolve, reject) => {
       const script = document.createElement('script')
@@ -51,62 +94,79 @@ export default function TypoCheckPage() {
   const [fileName, setFileName] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  async function handleCheck() {
-    if (!text.trim()) return
-    setLoading(true)
+  const charCount = text.length
+  const charCountNoSpace = text.replace(/\s/g, '').length
+  const byteCount = new TextEncoder().encode(text).length
 
+  async function runFullCheck(input: string): Promise<TypoMatch[]> {
     // 1. 로컬 규칙 기반 검사
-    const localMatches = checkTypos(text)
+    const localMatches = checkTypos(input)
 
-    // 2. 서버 API 기반 맞춤법 검사 (500자씩 분할)
-    const chunks: string[] = []
-    const chunkSize = 500
-    for (let i = 0; i < text.length; i += chunkSize) {
-      chunks.push(text.slice(i, i + chunkSize))
-    }
-
+    // 2. 서버 API 기반 맞춤법 검사 (문장 단위 분할)
+    const chunks = splitChunks(input, NAVER_CHUNK_LIMIT)
     let apiMatches: TypoMatch[] = []
-    let offset = 0
-    for (const chunk of chunks) {
+
+    for (const { chunk, offset } of chunks) {
       const results = await apiSpellCheck(chunk)
-      // 오프셋 보정
       for (const r of results) {
         r.index += offset
       }
       apiMatches = apiMatches.concat(results)
-      offset += chunk.length
     }
 
-    // 3. 중복 제거 후 병합 (같은 위치의 로컬 우선)
-    const localIndexSet = new Set(localMatches.map((m) => `${m.index}:${m.length}`))
+    // 3. 중복 제거 후 병합 (같은 위치/길이의 로컬 우선)
+    const localKeys = new Set(localMatches.map((m) => `${m.index}:${m.length}`))
+    // API 결과 중 로컬 결과와 범위가 겹치는 것도 제외
     const merged = [
       ...localMatches,
-      ...apiMatches.filter((m) => !localIndexSet.has(`${m.index}:${m.length}`)),
+      ...apiMatches.filter((m) => {
+        if (localKeys.has(`${m.index}:${m.length}`)) return false
+        // 범위 겹침 검사
+        return !localMatches.some(
+          (lm) => m.index < lm.index + lm.length && m.index + m.length > lm.index,
+        )
+      }),
     ].sort((a, b) => a.index - b.index)
 
+    return merged
+  }
+
+  async function handleCheck() {
+    if (!text.trim()) return
+    setLoading(true)
+    const merged = await runFullCheck(text)
     setMatches(merged)
     setChecked(true)
     setLoading(false)
   }
 
-  function handleApply(match: TypoMatch) {
+  async function handleApply(match: TypoMatch) {
     const before = text.slice(0, match.index)
     const after = text.slice(match.index + match.length)
     const newText = before + match.suggestion + after
     setText(newText)
-    // 재검사 (인덱스 변경 반영)
-    const newMatches = checkTypos(newText)
+
+    // 재검사
+    setLoading(true)
+    const newMatches = await runFullCheck(newText)
     setMatches(newMatches)
+    setLoading(false)
   }
 
-  function handleApplyAll() {
+  async function handleApplyAll() {
     let result = text
     const sorted = [...matches].sort((a, b) => b.index - a.index)
     for (const m of sorted) {
       result = result.slice(0, m.index) + m.suggestion + result.slice(m.index + m.length)
     }
     setText(result)
-    setMatches([])
+
+    // 재검사
+    setLoading(true)
+    const newMatches = await runFullCheck(result)
+    setMatches(newMatches)
+    setChecked(true)
+    setLoading(false)
   }
 
   function handleLoadSample() {
@@ -153,7 +213,6 @@ export default function TypoCheckPage() {
     URL.revokeObjectURL(url)
   }
 
-  // 하이라이트된 텍스트 생성
   function renderHighlighted() {
     if (!matches.length) return <span>{text}</span>
 
@@ -231,20 +290,30 @@ export default function TypoCheckPage() {
               rows={12}
               className="block w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm text-ink shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 leading-relaxed"
             />
-            <div className="mt-3 flex items-center gap-3">
-              <Button onClick={handleCheck} disabled={!text.trim() || loading}>
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    검수 중...
+            {/* 글자 수 카운터 */}
+            <div className="mt-2 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Button onClick={handleCheck} disabled={!text.trim() || loading}>
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      검수 중...
+                    </span>
+                  ) : '검수 시작'}
+                </Button>
+                {checked && !loading && (
+                  <span className="text-sm text-neutral-600">
+                    {matches.length === 0 ? '오타가 발견되지 않았습니다.' : `${matches.length}건 발견`}
                   </span>
-                ) : '검수 시작'}
-              </Button>
-              {checked && !loading && (
-                <span className="text-sm text-neutral-600">
-                  {matches.length === 0 ? '오타가 발견되지 않았습니다.' : `${matches.length}건 발견`}
-                </span>
-              )}
+                )}
+              </div>
+              <div className="flex items-center gap-3 text-xs text-neutral-400 tabular-nums">
+                <span>공백 포함 <strong className="text-neutral-600">{charCount.toLocaleString()}</strong>자</span>
+                <span className="text-neutral-300">|</span>
+                <span>공백 제외 <strong className="text-neutral-600">{charCountNoSpace.toLocaleString()}</strong>자</span>
+                <span className="text-neutral-300">|</span>
+                <span><strong className="text-neutral-600">{byteCount.toLocaleString()}</strong> bytes</span>
+              </div>
             </div>
           </Card>
 
@@ -254,7 +323,7 @@ export default function TypoCheckPage() {
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-medium text-neutral-500">하이라이트 미리보기</span>
                 <div className="flex items-center gap-2">
-                  <Button variant="secondary" onClick={handleApplyAll}>
+                  <Button variant="secondary" onClick={handleApplyAll} disabled={loading}>
                     전체 수정 적용 ({matches.length}건)
                   </Button>
                   <button
@@ -294,6 +363,7 @@ export default function TypoCheckPage() {
                     <button
                       className="shrink-0 text-xs text-brand-500 hover:underline"
                       onClick={() => handleApply(m)}
+                      disabled={loading}
                     >
                       적용
                     </button>

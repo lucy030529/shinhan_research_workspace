@@ -16,20 +16,11 @@ export interface TypoMatch {
 const HANGUL_START = 0xac00
 const HANGUL_END = 0xd7a3
 
-function isHangul(ch: string): boolean {
-  const c = ch.charCodeAt(0)
-  return c >= HANGUL_START && c <= HANGUL_END
-}
-
 // 종성(받침) 인덱스: 0=없음, 1=ㄱ, 2=ㄲ, 3=ㄳ, 4=ㄴ, ...
 function getJongsung(ch: string): number {
   const c = ch.charCodeAt(0)
   if (c < HANGUL_START || c > HANGUL_END) return -1
   return (c - HANGUL_START) % 28
-}
-
-function hasJongsung(ch: string): boolean {
-  return getJongsung(ch) > 0
 }
 
 // ═══════════════════════════════════════════

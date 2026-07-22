@@ -22,6 +22,7 @@ export default function GapRatioPage() {
   const [analystFilter, setAnalystFilter] = useState('')
   const [pageSize, setPageSize] = useState(15)
   const [page, setPage] = useState(1)
+  const [activePill, setActivePill] = useState<'all' | 'red' | 'orange' | 'amber' | null>(null)
 
   // 방어적: items가 배열이 아닌 경우 빈 배열 사용
   const items = Array.isArray(rawItems) ? rawItems : []
@@ -62,7 +63,6 @@ export default function GapRatioPage() {
   const rows = [...items]
     .filter((g) => g && (!analystFilter || (tickerAnalystMap.get(g.ticker) || '미지정') === analystFilter))
     .sort((a, b) => Math.abs(safeGap(b.gapRatio)) - Math.abs(safeGap(a.gapRatio)))
-  const warnings = rows.filter((g) => Math.abs(safeGap(g.gapRatio)) >= 30)
 
   const totalPages = Math.max(1, Math.ceil(rows.length / pageSize))
   const safePage = Math.min(page, totalPages)
@@ -116,27 +116,86 @@ export default function GapRatioPage() {
         </div>
       </div>
 
-      {/* 요약 카드 */}
-      {warnings.length > 0 && (
-        <div className="mb-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-lg border border-neutral-200 bg-white px-4 py-3">
-            <p className="text-xs text-neutral-500">전체 종목</p>
-            <p className="mt-1 text-lg font-bold text-ink">{rows.length}</p>
-          </div>
-          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-            <p className="text-xs text-red-600">위험 (100%+)</p>
-            <p className="mt-1 text-lg font-bold text-red-700">{rows.filter((g) => Math.abs(safeGap(g.gapRatio)) >= 100).length}</p>
-          </div>
-          <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3">
-            <p className="text-xs text-orange-600">경고 (50~100%)</p>
-            <p className="mt-1 text-lg font-bold text-orange-700">{rows.filter((g) => { const a = Math.abs(safeGap(g.gapRatio)); return a >= 50 && a < 100 }).length}</p>
-          </div>
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-            <p className="text-xs text-amber-600">주의 (30~50%)</p>
-            <p className="mt-1 text-lg font-bold text-amber-700">{rows.filter((g) => { const a = Math.abs(safeGap(g.gapRatio)); return a >= 30 && a < 50 }).length}</p>
-          </div>
-        </div>
-      )}
+      {/* Pill 탭 네비게이션 */}
+      {(() => {
+        const dangerItems = rows.filter((g) => Math.abs(safeGap(g.gapRatio)) >= 100)
+        const warnItems = rows.filter((g) => { const a = Math.abs(safeGap(g.gapRatio)); return a >= 50 && a < 100 })
+        const cautionItems = rows.filter((g) => { const a = Math.abs(safeGap(g.gapRatio)); return a >= 30 && a < 50 })
+        const pillItems = activePill === 'all' ? rows : activePill === 'red' ? dangerItems : activePill === 'orange' ? warnItems : activePill === 'amber' ? cautionItems : []
+
+        const pills: { key: typeof activePill; label: string; count: number; base: string; active: string }[] = [
+          { key: 'all', label: '전체 종목', count: rows.length, base: 'text-neutral-600 hover:bg-neutral-100', active: 'bg-ink text-white shadow-md' },
+          { key: 'red', label: '위험', count: dangerItems.length, base: 'text-red-600 hover:bg-red-50', active: 'bg-red-500 text-white shadow-md' },
+          { key: 'orange', label: '경고', count: warnItems.length, base: 'text-orange-600 hover:bg-orange-50', active: 'bg-orange-500 text-white shadow-md' },
+          { key: 'amber', label: '주의', count: cautionItems.length, base: 'text-amber-600 hover:bg-amber-50', active: 'bg-amber-500 text-white shadow-md' },
+        ]
+
+        return (
+          <>
+            <div className="mb-4 inline-flex items-center gap-1 rounded-full bg-neutral-100 p-1">
+              {pills.map((pill) => (
+                <button
+                  key={pill.key}
+                  onClick={() => setActivePill(activePill === pill.key ? null : pill.key)}
+                  className={`relative rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
+                    activePill === pill.key ? pill.active : pill.base
+                  }`}
+                >
+                  {pill.label}
+                  <span className={`ml-1.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-xs font-bold ${
+                    activePill === pill.key ? 'bg-white/25 text-white' : 'bg-white text-neutral-600'
+                  }`}>
+                    {pill.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {activePill && pillItems.length > 0 && (
+              <Card className="mb-4 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500 bg-neutral-100/60">
+                        <th className="px-5 py-2.5 text-left font-medium">종목</th>
+                        <th className="px-5 py-2.5 font-medium">담당 애널리스트</th>
+                        <th className="px-5 py-2.5 font-medium">목표주가</th>
+                        <th className="px-5 py-2.5 font-medium">현재가</th>
+                        <th className="px-5 py-2.5 font-medium">괴리율</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-150">
+                      {pillItems.map((g) => {
+                        const gap = safeGap(g.gapRatio)
+                        const tone = gapTone(gap)
+                        return (
+                          <tr key={g.id} className="hover:bg-neutral-100/50">
+                            <td className="px-5 py-2.5 text-left">
+                              <span className="font-medium text-ink">{g.name}</span>
+                              <span className="ml-2 text-xs text-neutral-400">{g.ticker}</span>
+                            </td>
+                            <td className="px-5 py-2.5 text-center text-neutral-600">{tickerAnalystMap.get(g.ticker) || '미지정'}</td>
+                            <td className="px-5 py-2.5 text-center tabular-nums text-neutral-600">{formatWon(g.targetPrice ?? 0)}</td>
+                            <td className="px-5 py-2.5 text-center tabular-nums text-neutral-600">{formatWon(g.currentPrice ?? 0)}</td>
+                            <td className={`px-5 py-2.5 text-center font-bold tabular-nums ${tone === 'red' ? 'text-red-600' : tone === 'orange' ? 'text-orange-600' : tone === 'amber' ? 'text-amber-600' : 'text-emerald-600'}`}>
+                              {formatPct(gap)}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
+            {activePill && pillItems.length === 0 && (
+              <Card className="mb-4">
+                <p className="px-5 py-6 text-center text-sm text-neutral-400">해당 항목이 없습니다.</p>
+              </Card>
+            )}
+          </>
+        )
+      })()}
 
       {/* 통합 테이블 */}
       <Card>
@@ -156,7 +215,7 @@ export default function GapRatioPage() {
             <thead>
               <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
                 <th className="px-5 py-3 text-left font-medium">종목</th>
-                <th className="px-5 py-3 font-medium">담당</th>
+                <th className="px-5 py-3 font-medium">담당 애널리스트</th>
                 <th className="px-5 py-3 font-medium">목표주가</th>
                 <th className="px-5 py-3 font-medium">현재가</th>
                 <th className="px-5 py-3 font-medium">괴리율</th>

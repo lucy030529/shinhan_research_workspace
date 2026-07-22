@@ -10,7 +10,13 @@ SK하이닉스는 HBM4 양산 효과로 몇일 내 실적 발표가 예상됩니
 
 const NAVER_CHUNK_LIMIT = 500
 
-async function apiSpellCheck(text: string): Promise<TypoMatch[]> {
+interface ApiCheckResult {
+  matches: TypoMatch[]
+  source: string
+  error?: string
+}
+
+async function apiSpellCheck(text: string): Promise<ApiCheckResult> {
   try {
     const resp = await fetch('/api/spellcheck', {
       method: 'POST',
@@ -18,16 +24,20 @@ async function apiSpellCheck(text: string): Promise<TypoMatch[]> {
       body: JSON.stringify({ text }),
     })
     const data = await resp.json()
-    if (!data.results || data.results.length === 0) return []
-    return data.results.map((r: { original: string; suggestion: string; info: string; start: number; end: number }) => ({
+    const source: string = data.source || 'unknown'
+    if (!data.results || data.results.length === 0) {
+      return { matches: [], source, error: data.error }
+    }
+    const matches = data.results.map((r: { original: string; suggestion: string; info: string; start: number; end: number }) => ({
       index: r.start,
       length: r.original.length,
       original: r.original,
       suggestion: r.suggestion,
       rule: r.info || '맞춤법',
     }))
+    return { matches, source }
   } catch {
-    return []
+    return { matches: [], source: 'failed', error: '서버 연결 실패' }
   }
 }
 
@@ -92,6 +102,8 @@ export default function TypoCheckPage() {
   const [checked, setChecked] = useState(false)
   const [loading, setLoading] = useState(false)
   const [fileName, setFileName] = useState<string | null>(null)
+  const [apiSource, setApiSource] = useState<string>('')
+  const [apiError, setApiError] = useState<string>('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   const charCount = text.length
@@ -105,23 +117,28 @@ export default function TypoCheckPage() {
     // 2. 서버 API 기반 맞춤법 검사 (문장 단위 분할)
     const chunks = splitChunks(input, NAVER_CHUNK_LIMIT)
     let apiMatches: TypoMatch[] = []
+    let lastSource = ''
+    let lastError = ''
 
     for (const { chunk, offset } of chunks) {
-      const results = await apiSpellCheck(chunk)
-      for (const r of results) {
+      const result = await apiSpellCheck(chunk)
+      for (const r of result.matches) {
         r.index += offset
       }
-      apiMatches = apiMatches.concat(results)
+      apiMatches = apiMatches.concat(result.matches)
+      lastSource = result.source
+      if (result.error) lastError = result.error
     }
+
+    setApiSource(lastSource)
+    setApiError(lastError)
 
     // 3. 중복 제거 후 병합 (같은 위치/길이의 로컬 우선)
     const localKeys = new Set(localMatches.map((m) => `${m.index}:${m.length}`))
-    // API 결과 중 로컬 결과와 범위가 겹치는 것도 제외
     const merged = [
       ...localMatches,
       ...apiMatches.filter((m) => {
         if (localKeys.has(`${m.index}:${m.length}`)) return false
-        // 범위 겹침 검사
         return !localMatches.some(
           (lm) => m.index < lm.index + lm.length && m.index + m.length > lm.index,
         )
@@ -304,8 +321,16 @@ export default function TypoCheckPage() {
                 {checked && !loading && (
                   <span className="text-sm text-neutral-600">
                     {matches.length === 0 ? '오타가 발견되지 않았습니다.' : `${matches.length}건 발견`}
+                    {apiSource && (
+                      <span className="ml-2 text-xs text-neutral-400">
+                        ({apiSource === 'naver' ? '네이버' : apiSource === 'pnu' ? '부산대' : apiSource === 'failed' ? 'API 실패' : apiSource})
+                      </span>
+                    )}
                   </span>
                 )}
+              {apiError && checked && !loading && (
+                <span className="text-xs text-amber-600">{apiError}</span>
+              )}
               </div>
               <div className="flex items-center gap-3 text-xs text-neutral-400 tabular-nums">
                 <span>공백 포함 <strong className="text-neutral-600">{charCount.toLocaleString()}</strong>자</span>
@@ -387,7 +412,7 @@ export default function TypoCheckPage() {
             <p className="text-xs font-medium text-neutral-500 mb-2">검수 방식</p>
             <ul className="space-y-1 text-xs text-neutral-600">
               <li>· <span className="font-medium">규칙 기반</span>: 띄어쓰기, 이중 피동, 율→률 등 증권 특화 규칙</li>
-              <li>· <span className="font-medium">맞춤법 API</span>: 네이버 맞춤법 검사기 연동</li>
+              <li>· <span className="font-medium">맞춤법 API</span>: 네이버 맞춤법 검사기 (1차) + 부산대 검사기 (2차)</li>
               <li>· <span className="font-medium">파일 지원</span>: .docx, .txt 파일 업로드 가능</li>
             </ul>
           </Card>

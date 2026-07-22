@@ -158,7 +158,7 @@ export const useCoverage = create<CoverageState>()(
     }),
     {
       name: 'shinhan-coverage',
-      version: 5,
+      version: 6,
       migrate: () => ({ items: [], initialized: false }),
     },
   ),

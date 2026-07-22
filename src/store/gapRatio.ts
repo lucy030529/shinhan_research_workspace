@@ -69,6 +69,12 @@ export const useGapRatio = create<GapRatioState>()(
 
       syncTargetPrices: (reports) => {
         let updated = 0
+        // 엑셀 기반 애널리스트 매핑 — 2부 소속 종목만 필터
+        const analystMap = new Map<string, string>()
+        for (const e of analystCoverageData.coverage) {
+          const ticker = (e as Record<string, unknown>).ticker as string
+          if (ticker) analystMap.set(ticker, e.analyst)
+        }
         set((s) => {
           const now = new Date().toISOString()
           // 기존 항목 갱신
@@ -83,11 +89,12 @@ export const useGapRatio = create<GapRatioState>()(
               updatedAt: now,
             }
           })
-          // 신한 리포트의 새 종목도 추가 (목표주가가 있는 경우)
+          // 새 종목 추가 — 2부 커버리지에 있는 종목만
           const existingTickers = new Set(updatedItems.map((g) => g.ticker))
           const newItems: GapRatioItem[] = []
           for (const r of reports) {
             if (!r.ticker || existingTickers.has(r.ticker) || r.targetPrice <= 0) continue
+            if (!analystMap.has(r.ticker)) continue // 2부 소속 아니면 무시
             existingTickers.add(r.ticker)
             newItems.push({
               id: 'g' + (++seq),
@@ -153,7 +160,7 @@ export const useGapRatio = create<GapRatioState>()(
     }),
     {
       name: 'shinhan-gap-ratio',
-      version: 6,
+      version: 7,
       migrate: () => ({ items: [], lastRefreshed: null }),
     },
   ),

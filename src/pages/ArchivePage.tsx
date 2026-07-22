@@ -118,8 +118,8 @@ export default function ArchivePage() {
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="종목명, 종목코드, 제목 검색..."
-          className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          placeholder="종목명, 코드, 제목 검색..."
+          className="w-full sm:w-auto rounded-lg border border-neutral-200 px-3 py-1.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
         <div className="flex items-center gap-1 rounded-lg border border-neutral-200 bg-white p-1">
           {PAGE_SIZES.map((s) => (
@@ -146,15 +146,15 @@ export default function ArchivePage() {
         <CardHeader title={`자료 목록 (${filtered.length}건)`} />
         <div className="divide-y divide-neutral-150">
           {filtered.map((item) => (
-            <div key={item.id} className="flex items-center justify-between px-5 py-3.5">
-              <div className="flex items-center gap-3 min-w-0">
+            <div key={item.id} className="flex items-start sm:items-center justify-between gap-2 px-4 sm:px-5 py-3">
+              <div className="flex items-start sm:items-center gap-2 sm:gap-3 min-w-0">
                 <Badge tone={TONE_MAP[item.category]}>
-                  {item.category === 'report' ? '신한 리서치' : CATEGORY_LABELS[item.category]}
+                  {item.category === 'report' ? '리서치' : CATEGORY_LABELS[item.category]}
                 </Badge>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-ink">{item.title}</p>
-                  <p className="text-xs text-neutral-500">
-                    {item.companyName && `${item.companyName} (${item.ticker}) · `}
+                  <p className="text-sm font-medium text-ink break-words sm:truncate">{item.title}</p>
+                  <p className="text-[11px] sm:text-xs text-neutral-500 break-words">
+                    {item.companyName && `${item.companyName} · `}
                     {item.source} · {item.date}
                   </p>
                 </div>
@@ -164,9 +164,9 @@ export default function ArchivePage() {
                   href={item.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="shrink-0 ml-3 text-xs text-brand-500 hover:underline"
+                  className="shrink-0 text-xs text-brand-500 hover:underline"
                 >
-                  {item.id.startsWith('shinhan-') ? '리포트 보기' : '원문 보기'}
+                  보기
                 </a>
               )}
             </div>

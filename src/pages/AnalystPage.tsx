@@ -153,7 +153,7 @@ export default function AnalystPage() {
             className="overflow-hidden"
           >
             <div className="mt-6">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {(() => {
                     const p = profiles[selectedAnalyst]
@@ -173,7 +173,7 @@ export default function AnalystPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="종목 검색"
-                    className="w-56 rounded-lg border border-neutral-200 py-2 pl-9 pr-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                    className="w-full sm:w-56 rounded-lg border border-neutral-200 py-2 pl-9 pr-3 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                   />
                 </div>
               </div>
@@ -257,22 +257,22 @@ export default function AnalystPage() {
                             </div>
                             {e.opinion && <Badge tone={OPINION_TONE[e.opinion] ?? 'slate'}>{e.opinion}</Badge>}
                           </div>
-                          <div className="mt-3 grid grid-cols-4 gap-2 text-center">
-                            <div>
-                              <p className="text-[10px] text-neutral-400">목표</p>
-                              <p className="text-xs font-semibold tabular-nums text-ink">{e.targetPrice > 0 ? e.targetPrice.toLocaleString('ko-KR') : '-'}</p>
+                          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-left">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-neutral-400">목표</span>
+                              <span className="text-xs font-semibold tabular-nums text-ink">{e.targetPrice > 0 ? e.targetPrice.toLocaleString('ko-KR') : '-'}</span>
                             </div>
-                            <div>
-                              <p className="text-[10px] text-neutral-400">현재가</p>
-                              <p className="text-xs font-semibold tabular-nums text-neutral-600">{e.currentPrice > 0 ? e.currentPrice.toLocaleString('ko-KR') : '-'}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-neutral-400">현재가</span>
+                              <span className="text-xs font-semibold tabular-nums text-neutral-600">{e.currentPrice > 0 ? e.currentPrice.toLocaleString('ko-KR') : '-'}</span>
                             </div>
-                            <div>
-                              <p className="text-[10px] text-neutral-400">괴리율</p>
-                              <p className="text-xs font-semibold">{gTone ? <Badge tone={gTone}>{formatPct(e.gapRatio)}</Badge> : '-'}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-neutral-400">괴리율</span>
+                              <span className="text-xs font-semibold">{gTone ? <Badge tone={gTone}>{formatPct(e.gapRatio)}</Badge> : '-'}</span>
                             </div>
-                            <div>
-                              <p className="text-[10px] text-neutral-400">기한</p>
-                              <p className="text-xs">{e.nextDue ? <Badge tone={dTone}>{daysLeft <= 0 ? `+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</Badge> : '-'}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-neutral-400">기한</span>
+                              <span className="text-xs">{e.nextDue ? <Badge tone={dTone}>{daysLeft <= 0 ? `+${Math.abs(daysLeft)}` : `D-${daysLeft}`}</Badge> : '-'}</span>
                             </div>
                           </div>
                           <p className="mt-2 text-[10px] text-neutral-400">발간 {e.lastUpdated}{e.analystFull !== e.analyst ? ` · ${e.analystFull}` : ''}</p>

@@ -133,7 +133,7 @@ export default function GapRatioPage() {
 
         return (
           <>
-            <div className="mb-4 inline-flex items-center gap-1 rounded-full bg-neutral-100 p-1">
+            <div className="mb-4 inline-flex flex-wrap items-center gap-1 rounded-full bg-neutral-100 p-1">
               {pills.map((pill) => (
                 <button
                   key={pill.key}
@@ -165,7 +165,7 @@ export default function GapRatioPage() {
                 )}
               </div>
               <div className="overflow-x-auto">
-                <table className="w-full table-fixed text-sm">
+                <table className="w-full min-w-[700px] table-fixed text-sm">
                   <thead>
                     <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
                       <th className="w-[22%] px-5 py-3 text-left font-medium">종목</th>

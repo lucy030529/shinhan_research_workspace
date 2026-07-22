@@ -102,7 +102,7 @@ export default function CoveragePage() {
 
       <Card>
         <div className="overflow-x-auto">
-          <table className="w-full table-fixed text-sm">
+          <table className="w-full min-w-[700px] table-fixed text-sm">
             <thead>
               <tr className="border-b border-neutral-150 text-center text-xs text-neutral-500">
                 <th className="w-[12%] px-5 py-3 font-medium">종목코드</th>

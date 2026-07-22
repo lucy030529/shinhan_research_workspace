@@ -74,11 +74,12 @@ export default function DashboardPage() {
   const warnings = gapItems.filter((g) => Math.abs(g.gapRatio) >= 30)
 
   // 마감일 1주일 내 일정
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const todayDate = new Date()
+  const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`
   const weekLaterStr = (() => {
     const d = new Date()
     d.setDate(d.getDate() + 7)
-    return d.toISOString().slice(0, 10)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
   })()
 
   const upcomingDeadlines = useMemo(() => {

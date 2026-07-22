@@ -313,12 +313,12 @@ export default function CalendarPage() {
       </Card>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
-        <Card className="lg:col-span-3">
+        <Card className="lg:col-span-3 overflow-x-auto">
           {/* 헤더 */}
-          <div className="flex items-center justify-between border-b border-neutral-150 px-5 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-150 px-4 sm:px-5 py-3">
             <div className="flex items-center gap-2">
               <button onClick={prevMonth} className="rounded-lg p-1.5 hover:bg-neutral-100 text-neutral-600">&larr;</button>
-              <h2 className="text-lg font-bold text-ink">{viewYear}년 {viewMonth + 1}월</h2>
+              <h2 className="text-base sm:text-lg font-bold text-ink">{viewYear}년 {viewMonth + 1}월</h2>
               <button onClick={nextMonth} className="rounded-lg p-1.5 hover:bg-neutral-100 text-neutral-600">&rarr;</button>
             </div>
             <div className="flex gap-2">
@@ -328,7 +328,7 @@ export default function CalendarPage() {
           </div>
 
           {/* 요일 */}
-          <div className="grid grid-cols-7 border-b border-neutral-150">
+          <div className="grid grid-cols-7 border-b border-neutral-150 min-w-[640px]">
             {WEEKDAYS.map((w, i) => (
               <div key={w} className={`py-2 text-center text-xs font-medium ${i === 0 ? 'text-red-400' : i === 6 ? 'text-blue-400' : 'text-neutral-500'}`}>{w}</div>
             ))}
@@ -346,7 +346,7 @@ export default function CalendarPage() {
               const bars = allWeekBars[weekIdx]
 
               return (
-                <div key={weekIdx} className="relative">
+                <div key={weekIdx} className="relative min-w-[640px]">
                   <div className="grid grid-cols-7">
                     {week.map((cell, colIdx) => {
                       const isToday = cell.date === todayStr
@@ -534,8 +534,8 @@ export default function CalendarPage() {
 
       {/* 일정 추가 모달 */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => { setShowForm(false); setEditingId(null) }}>
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => { setShowForm(false); setEditingId(null) }}>
+          <div className="w-full max-w-md max-h-[90vh] overflow-y-auto rounded-lg bg-white p-5 sm:p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold text-ink">
               {editingId ? (newIsDepartment ? '부서 공통사항 수정' : '일정 수정') : (newIsDepartment ? '부서 공통사항 추가' : '일정 추가')}
             </h2>
@@ -638,8 +638,8 @@ export default function CalendarPage() {
         const ep = ev.analyst ? profiles[ev.analyst] : undefined
         const canEdit = isAdmin || ev.createdBy === user?.name || ev.analyst === user?.name
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30" onClick={() => setDetailEvent(null)}>
-            <div className="w-full max-w-sm rounded-lg bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4" onClick={() => setDetailEvent(null)}>
+            <div className="w-full max-w-sm max-h-[90vh] overflow-y-auto rounded-lg bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
               {/* 헤더 */}
               <div className={`rounded-t-lg px-5 py-4 ${COLOR_BG[ev.color]} border-b`}>
                 <div className="flex items-center justify-between">

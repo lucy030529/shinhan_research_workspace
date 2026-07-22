@@ -46,7 +46,7 @@ export default async (req: Request) => {
       const data = await resp.json()
       return new Response(JSON.stringify({
         pdfUrl: data.researchContent?.attachUrl || '',
-        targetPrice: parseInt(String(data.researchContent?.prevGoalPrice || '0').replace(/,/g, ''), 10) || 0,
+        targetPrice: parseInt(String(data.researchContent?.goalPrice || '0').replace(/,/g, ''), 10) || 0,
         opinion: data.researchContent?.opinion || '',
       }), {
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
@@ -108,7 +108,7 @@ export default async (req: Request) => {
             const data = await resp.json()
             return {
               id: r.id,
-              targetPrice: parseInt(String(data.researchContent?.prevGoalPrice || '0').replace(/,/g, ''), 10) || 0,
+              targetPrice: parseInt(String(data.researchContent?.goalPrice || '0').replace(/,/g, ''), 10) || 0,
               opinion: data.researchContent?.opinion || '',
               pdfUrl: data.researchContent?.attachUrl || r.pdfUrl,
             }

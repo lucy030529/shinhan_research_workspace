@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Badge, Button, Card, CardHeader, PageHeader } from '../components/ui'
 import { CATEGORY_LABELS, type ArchiveItem } from '../data/archive'
-import { useCoverage } from '../store/coverage'
 import { fetchDart, fetchShinhanResearch, type DartItem, type ShinhanReport } from '../lib/api'
 
 type Category = 'all' | 'report' | 'dart'
@@ -19,8 +18,6 @@ export default function ArchivePage() {
   const [tab, setTab] = useState<Category>('all')
   const [search, setSearch] = useState('')
   const [pageSize, setPageSize] = useState<number>(30)
-  const coverageItems = useCoverage((s) => s.items)
-
   const [dartItems, setDartItems] = useState<DartItem[]>([])
   const [shinhanReports, setShinhanReports] = useState<ShinhanReport[]>([])
   const [loading, setLoading] = useState(false)

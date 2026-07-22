@@ -17,7 +17,7 @@ const PAGE_SIZES = [15, 30, 60] as const
 export default function ArchivePage() {
   const [tab, setTab] = useState<Category>('all')
   const [search, setSearch] = useState('')
-  const [pageSize, setPageSize] = useState<number>(30)
+  const [pageSize, setPageSize] = useState<number>(15)
   const [dartItems, setDartItems] = useState<DartItem[]>([])
   const [shinhanReports, setShinhanReports] = useState<ShinhanReport[]>([])
   const [loading, setLoading] = useState(false)

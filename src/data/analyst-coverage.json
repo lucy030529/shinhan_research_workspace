@@ -316,6 +316,16 @@
       "ticker": "017670"
     },
     {
+      "company": "RF머트리얼즈",
+      "analyst": "김아람",
+      "analystFull": "김아람",
+      "lastUpdated": "2026-05-07",
+      "opinion": "",
+      "targetPrice": 0,
+      "title": "탐방노트: EML보다 더 심각한 펌프레이저 공급 부족",
+      "ticker": "232990"
+    },
+    {
       "company": "RFHIC",
       "analyst": "김아람",
       "analystFull": "김아람",
@@ -324,6 +334,16 @@
       "targetPrice": 123000,
       "title": "업데이트: 주가는 쉬었지만 펀더멘털은 여전히 좋습니다",
       "ticker": "218410"
+    },
+    {
+      "company": "SAMG엔터",
+      "analyst": "김아람",
+      "analystFull": "김아람",
+      "lastUpdated": "2026-04-21",
+      "opinion": "",
+      "targetPrice": 0,
+      "title": "어느새 PER 10배 초반",
+      "ticker": "419530"
     },
     {
       "company": "고려아연",

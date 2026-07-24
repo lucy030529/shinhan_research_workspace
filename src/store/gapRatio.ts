@@ -13,7 +13,7 @@ interface GapRatioState {
   /** 현재가 일괄 갱신 (어댑터에서 가져온 데이터) */
   refreshPrices: (prices: { ticker: string; currentPrice: number }[]) => void
   /** 리포트 발간 시 목표주가 갱신 */
-  syncTargetPrices: (reports: { ticker: string; name: string; targetPrice: number }[]) => number
+  syncTargetPrices: (reports: { ticker: string; name: string; targetPrice: number; analyst?: string }[]) => number
   /** 엑셀 기반 목표주가 초기화 */
   loadAnalystTargetPrices: () => number
 }
@@ -89,12 +89,13 @@ export const useGapRatio = create<GapRatioState>()(
               updatedAt: now,
             }
           })
-          // 새 종목 추가 — 2부 커버리지에 있는 종목만
+          // 새 종목 추가 — 2부 커버리지에 있거나, 리포트 애널리스트가 2부 소속이면 추가
+          const analystSet = new Set(analystCoverageData.analysts)
           const existingTickers = new Set(updatedItems.map((g) => g.ticker))
           const newItems: GapRatioItem[] = []
           for (const r of reports) {
             if (!r.ticker || existingTickers.has(r.ticker) || r.targetPrice <= 0) continue
-            if (!analystMap.has(r.ticker)) continue // 2부 소속 아니면 무시
+            if (!analystMap.has(r.ticker) && !(r.analyst && analystSet.has(r.analyst))) continue // 2부 소속 아니면 무시
             existingTickers.add(r.ticker)
             newItems.push({
               id: 'g' + (++seq),

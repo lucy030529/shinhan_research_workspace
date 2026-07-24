@@ -11,7 +11,7 @@ interface CoverageState {
   remove: (id: string) => void
   importBulk: (rows: Omit<CoverageItem, 'id' | 'nextDue'>[]) => number
   /** 리포트 발간일 기준으로 커버리지 기한 갱신 */
-  syncFromReports: (reports: { ticker: string; name: string; date: string }[]) => number
+  syncFromReports: (reports: { ticker: string; name: string; date: string; analyst?: string }[]) => number
   /** 엑셀 기반 애널리스트 커버리지 초기화 */
   loadAnalystCoverage: () => number
 }
@@ -91,12 +91,13 @@ export const useCoverage = create<CoverageState>()(
             }
             return c
           })
-          // 새 종목 추가 (엑셀 데이터 또는 오버라이드에 있는 종목)
+          // 새 종목 추가 — ticker가 엑셀에 있거나, 리포트 애널리스트가 2부 소속이면 추가
           const analystMap = buildAnalystMap()
+          const analystSet = new Set(analystCoverageData.analysts)
           const newItems: CoverageItem[] = []
           for (const r of reports) {
             if (!r.ticker || existingTickers.has(r.ticker)) continue
-            const analyst = analystMap.get(r.ticker)
+            const analyst = analystMap.get(r.ticker) || (r.analyst && analystSet.has(r.analyst) ? r.analyst : null)
             if (!analyst) continue // 2부 소속 아니면 무시
             existingTickers.add(r.ticker)
             updated++

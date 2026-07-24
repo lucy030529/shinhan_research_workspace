@@ -38,8 +38,8 @@ export default function DashboardPage() {
         const { items } = await fetchShinhanResearch({ pageSize: 100 })
         const reports = items.filter((r) => r.ticker)
         if (reports.length > 0) {
-          const covUpdated = syncFromReports(reports.map((r) => ({ ticker: r.ticker, name: r.company, date: r.date })))
-          const gapUpdated = syncTargetPrices(reports.map((r) => ({ ticker: r.ticker, name: r.company, targetPrice: r.targetPrice })))
+          const covUpdated = syncFromReports(reports.map((r) => ({ ticker: r.ticker, name: r.company, date: r.date, analyst: r.analyst })))
+          const gapUpdated = syncTargetPrices(reports.map((r) => ({ ticker: r.ticker, name: r.company, targetPrice: r.targetPrice, analyst: r.analyst })))
           reportSync = covUpdated > 0 || gapUpdated > 0
             ? `리서치 ${reports.length}건 → 커버리지 ${covUpdated}건·목표주가 ${gapUpdated}건 갱신. `
             : `리서치 ${reports.length}건 확인 (변동 없음). `

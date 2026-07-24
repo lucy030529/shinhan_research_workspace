@@ -51,7 +51,7 @@ async function saveAdminProfile(profile: Partial<StoredUser>) {
 }
 
 function getAllUsers(registered: StoredUser[], adminOverride?: Partial<StoredUser>): StoredUser[] {
-  const admins = BUILTIN_USERS.map((u) => adminOverride ? { ...u, ...adminOverride, id: u.id, email: u.email, role: u.role as 'admin', password: u.password, status: u.status as 'pending' | 'approved' } : u)
+  const admins = BUILTIN_USERS.map((u) => adminOverride ? { ...u, ...adminOverride, id: u.id, email: u.email, role: u.role as 'admin', password: adminOverride.password || u.password, status: u.status as 'pending' | 'approved' } : u)
   return [...admins, ...registered]
 }
 

@@ -100,20 +100,24 @@ export default function AnalystPage() {
               onClick={() => { setSelectedAnalyst(isActive ? null : a); setSearchQuery('') }}
               className={`w-full rounded-xl border p-3 sm:p-4 text-left transition-all ${
                 isActive
-                  ? 'border-brand-500 bg-brand-50 shadow-md shadow-brand-500/10'
-                  : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm'
+                  ? a === '김아람'
+                    ? 'border-pink-400 bg-pink-50 shadow-md shadow-pink-400/10'
+                    : 'border-brand-500 bg-brand-50 shadow-md shadow-brand-500/10'
+                  : a === '김아람'
+                    ? 'border-pink-200 bg-pink-50/40 hover:border-pink-300 hover:shadow-sm'
+                    : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm'
               }`}
             >
               <div className="flex items-center gap-2 sm:gap-3">
                 {p?.avatar?.startsWith('data:') ? (
-                  <img src={p.avatar} alt="" className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover ring-2 ${isActive ? 'ring-brand-300' : 'ring-neutral-200'}`} />
+                  <img src={p.avatar} alt="" className={`h-8 w-8 sm:h-10 sm:w-10 rounded-full object-cover ring-2 ${isActive ? (a === '김아람' ? 'ring-pink-300' : 'ring-brand-300') : 'ring-neutral-200'}`} />
                 ) : (
-                  <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white ${isActive ? 'bg-brand-500' : 'bg-neutral-400'}`}>
+                  <div className={`flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full text-xs sm:text-sm font-bold text-white ${isActive ? (a === '김아람' ? 'bg-pink-400' : 'bg-brand-500') : (a === '김아람' ? 'bg-pink-300' : 'bg-neutral-400')}`}>
                     {a[0]}
                   </div>
                 )}
                 <div className="min-w-0">
-                  <p className={`text-sm sm:text-base font-semibold ${isActive ? 'text-brand-700' : 'text-ink'}`}>{a}</p>
+                  <p className={`text-sm sm:text-base font-semibold ${isActive ? (a === '김아람' ? 'text-pink-600' : 'text-brand-700') : 'text-ink'}`}>{a}</p>
                   {p?.title && <p className="truncate text-[10px] sm:text-[11px] text-neutral-400">{p.title}</p>}
                 </div>
               </div>
